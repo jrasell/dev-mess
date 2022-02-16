@@ -1,0 +1,23 @@
+[Unit]
+Description="HashiCorp Nomad"
+Documentation=https://www.nomadproject.io/
+Requires=network-online.target
+After=network-online.target consul.service vault.service
+
+[Service]
+User=nomad
+Group=nomad
+KillMode=process
+KillSignal=SIGINT
+LimitNOFILE=infinity
+LimitNPROC=infinity
+Restart=on-failure
+RestartSec=2
+StartLimitBurst=3
+TasksMax=infinity
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/nomad agent \
+  -config=/etc/nomad.d/
+
+[Install]
+WantedBy=multi-user.target

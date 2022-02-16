@@ -1,0 +1,5 @@
+{
+  "description": "Install Consul",
+  "supports_noop": true,
+  "parameters": {}
+}

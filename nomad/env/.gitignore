@@ -1,0 +1,13 @@
+# Mac
+._*
+*.DS_Store
+
+# Goland
+.idea
+
+# Vargrant machine directory.
+.vagrant/
+
+# Puppet Bolt logs and objects.
+.rerun.json
+*.log

@@ -1,0 +1,22 @@
+[Unit]
+Description="HashiCorp Consul"
+Documentation=https://www.consul.io/
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=notify
+User=consul
+Group=consul
+KillMode=process
+KillSignal=SIGINT
+LimitNOFILE=65536
+Restart=always
+StartLimitBurst=3
+TasksMax=infinity
+ExecReload=/usr/local/bin/consul reload
+ExecStart=/usr/local/bin/consul agent \
+  -config-dir=/etc/consul.d/
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+{
+  "description": "Install Golang",
+  "supports_noop": true,
+  "parameters": {}
+}

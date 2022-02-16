@@ -1,0 +1,6 @@
+{
+  "description": "Prepare the base machine",
+  "private": true,
+  "supports_noop": true,
+  "parameters": {}
+}
