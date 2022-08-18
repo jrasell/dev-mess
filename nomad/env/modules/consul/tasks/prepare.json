@@ -1,6 +1,0 @@
-{
-  "description": "Prepare machines for running Nomad",
-  "private": true,
-  "supports_noop": true,
-  "parameters": {}
-}

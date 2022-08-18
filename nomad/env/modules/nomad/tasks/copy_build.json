@@ -1,5 +1,0 @@
-{
-  "description": "Copy the development Nomad binary",
-  "supports_noop": true,
-  "parameters": {}
-}

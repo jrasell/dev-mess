@@ -1,28 +1,30 @@
-# Nomad Local Development
-This directory holds scripts and configuration which allow to automatic
-building of a local environment for Nomad debugging and development. Thanks to
-[HashiBox](https://github.com/nunchistudio/hashibox) for the inspiration and
-base.
+# Donkey
+Donkey is a set of scripts and configuration which allows for the automatic
+building and updating of a local environment for Nomad debugging and
+development.
 
-### Requirements
-The following applications are expected to be installed and available on your
-local machine.
-* [Vagrant](https://www.vagrantup.com/downloads) to automate virtual machines
-* [Virtual Box](https://www.virtualbox.org/wiki/Downloads) to provide
-underlying virtualization
-* [Puppet Bolt](https://puppet.com/docs/bolt/latest/bolt_installing.html) to
-automate machine installation and updates
+## Prerequisites
+Donkey utilises a number of applications that are required to be installed
+locally as well as some minimal configuration.
 
-### Running
-The `make help` command provides help output on the available make targets that
-can be used to build, update, and destroy the development environment.
+* Terraform 1.2.7 (required)
+* Vagrant 2.3.0 (required)
+* VirtualBox 6.1.32 (required)
+* Ansible 2.10.17 (optional)
+* TLS private key pair (required)
 
-### Assumptions
-The [Vagrantfile](./Vagrantfile) currently uses a hardcoded value for mounting
-the Nomad codebase into the machine. Please modify this as required until a
-better solution arrives.
+export TF_VAR_nomad_root_token=
 
-## Contributing
-Any and all contributions are welcome. My current focus is on better scripts,
-automatic TLS and ACLs, as well as automatic federation. Additional regions are
-also welcome if you wish to have something more "local".
+
+## Ansible
+
+
+### Common Commands
+
+
+* Build the Nomad development code and replace the running binary:
+```shell
+ansible eu_west_2_servers \
+  -i inventory/ansible --become-user "root"  \
+  -a "bash /donkey/scripts/install_nomad.sh dev && bash /donkey/scripts/restart_nomad.sh"
+```

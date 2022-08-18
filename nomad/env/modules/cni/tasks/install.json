@@ -1,5 +1,0 @@
-{
-  "description": "Install CNI",
-  "supports_noop": false,
-  "parameters": {}
-}

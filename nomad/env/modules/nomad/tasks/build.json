@@ -1,5 +1,0 @@
-{
-  "description": "Build Nomad on targeted machines",
-  "supports_noop": true,
-  "parameters": {}
-}

@@ -1,0 +1,13 @@
+[eu_west_2_servers]
+192.168.60.10
+
+[eu_central_1_servers]
+192.168.60.10
+
+[eu_west_2_servers:vars]
+ansible_user=vagrant
+ansible_ssh_common_args='-i ~/.ssh/donkey_id_rsa'
+
+[eu_central_1_servers:vars]
+ansible_user=vagrant
+ansible_ssh_common_args='-i ~/.ssh/donkey_id_rsa'

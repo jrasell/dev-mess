@@ -1,0 +1,18 @@
+# Mac
+._*
+*.DS_Store
+
+# Goland
+.idea
+
+# Vargrant machine directory.
+.vagrant/
+
+# The ACL root token storage file.
+.nomad_root_token
+
+# Terraform state and modules.
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.tfstate.lock.info
+.terraform
