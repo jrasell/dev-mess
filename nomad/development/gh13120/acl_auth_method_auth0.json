@@ -1,0 +1,13 @@
+{
+  "OIDCDiscoveryURL": "https://<AUTH0_DOMAIN>/",
+  "OIDCClientID": "<AUTH0_CLIENT_ID>",
+  "OIDCClientSecret": "<AUTH0_CLIENT_SECRET>",
+  "BoundAudiences": ["<AUTH0_CLIENT_ID>"],
+  "AllowedRedirectURIs": [
+    "http://127.0.0.1:4649/oidc/callback",
+    "http://127.0.0.1:4646/ui/oidc/callback"
+  ],
+  "ListClaimMappings": {
+    "http://nomad.internal/roles": "roles"
+  }
+}
