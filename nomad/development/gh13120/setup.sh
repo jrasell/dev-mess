@@ -16,6 +16,11 @@ function setup() {
   # The bootstrap token is generated for this use only, and therefore safe to
   # have in GitHub.
   $NOMAD_BINARY acl bootstrap ./acl_bootstrap_token
+
+  # Set the bootstrap token so all management API calls succeed.
+  NOMAD_TOKEN=$(cat acl_bootstrap_token)
+  export NOMAD_TOKEN
+
   $NOMAD_BINARY acl policy apply engineering-read ./acl_policy_engineering_read.hcl
 
   # Role which contains all policies to assign to engineers.
