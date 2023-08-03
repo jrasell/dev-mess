@@ -14,6 +14,9 @@ mounts:
 portForwards:
  - guestPort: 4646
 
+networks:
+  - lima: shared
+
 provision:
   - mode: user
     script: |
