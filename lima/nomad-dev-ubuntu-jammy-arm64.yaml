@@ -23,11 +23,7 @@ provision:
       #!/usr/bin/env bash
       set -eux -o pipefail
       
-      sudo apt-get install -y \
-        make \
-        build-essential \
-        unzip
-      
+      sudo bash /opt/scripts/linux-bootstrap.sh
       sudo bash /opt/nomad/scripts/linux-priv-config.sh
       bash /opt/nomad/scripts/linux-priv-go.sh
       sudo bash /opt/nomad/scripts/linux-priv-dev.sh  
