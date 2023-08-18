@@ -4,4 +4,8 @@ set -eux -o pipefail
 
 apt-get install -y \
   qemu-kvm \
-  libvirt-daemon-system
+  libvirt-daemon-system \
+  libvirt-clients
+
+systemctl enable libvirtd
+systemctl start libvirtd
