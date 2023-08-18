@@ -11,6 +11,10 @@ mounts:
     mountPoint: "/opt/scripts"
     writable: true
 
+containerd:
+  system: false
+  user: false
+
 networks:
   - lima: shared
 

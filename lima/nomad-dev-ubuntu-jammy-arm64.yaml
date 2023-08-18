@@ -11,6 +11,10 @@ mounts:
     mountPoint: "/opt/nomad"
     writable: true
 
+containerd:
+  system: false
+  user: false
+
 portForwards:
  - guestPort: 4646
 
