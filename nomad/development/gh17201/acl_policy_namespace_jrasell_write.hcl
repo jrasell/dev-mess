@@ -1,0 +1,3 @@
+namespace "jrasell" {
+  policy = "write"
+}
