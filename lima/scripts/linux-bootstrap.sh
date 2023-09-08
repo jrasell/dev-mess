@@ -3,6 +3,7 @@
 set -eux -o pipefail
 
 apt-get install -y \
-  make \
   build-essential \
+  jq \
+  make \
   unzip
