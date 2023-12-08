@@ -1,0 +1,23 @@
+- name: "download_{{ hashicorp_release_product_name }}"
+  get_url:
+    url: "{{ hashicorp_release_zip_url }}"
+    dest: "/tmp/{{ hashicorp_release_product_name }}.zip"
+    timeout: "60"
+    mode: '600'
+  become: false
+
+- name: "unzip_{{ hashicorp_release_product_name }}"
+  unarchive:
+    remote_src: "yes"
+    src: "/tmp/{{ hashicorp_release_product_name }}.zip"
+    dest: "{{ hashicorp_release_product_install_dir }}"
+    creates: "{{ hashicorp_release_product_install_dir }}/hashicorp_release_product_name"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0755"
+  become: true
+
+- name: "remove_{{ hashicorp_release_product_name }}_zip"
+  ansible.builtin.file:
+    path: "/tmp/{{ hashicorp_release_product_name }}.zip"
+    state: "absent"

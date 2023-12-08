@@ -1,0 +1,22 @@
+- name: "install_packages"
+  become: true
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: "present"
+    update_cache: true
+  loop: "{{ build_apt_packages }}"
+
+- name: "git_mark_safe"
+  ansible.builtin.command: "git config --global --add safe.directory {{ build_nomad_code_path }}"
+
+- name: "check_dev_binary"
+  stat:
+    path: "{{ build_nomad_code_path }}/pkg/linux_arm64/nomad"
+  register: dev_binary
+
+- name: "build_dev_binary"
+  shell: ". /etc/profile;make {{ item }}"
+  args:
+    chdir: "{{ build_nomad_code_path }}"
+  when: not dev_binary.stat.exists
+  loop: "{{ build_dev_make_commands }}"

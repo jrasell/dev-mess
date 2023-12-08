@@ -1,0 +1,28 @@
+nomad_user: "root"
+nomad_group: "root"
+nomad_version: "1.6.3"
+nomad_binary_path: ""
+
+nomad_config_dir: "/etc/nomad.d"
+nomad_data_dir: "/opt/nomad/data"
+nomad_region: "global"
+nomad_name: "{{ ansible_nodename | split('-') | last }}"
+nomad_datacenter: "dc1"
+nomad_bind_addr: "0.0.0.0"
+
+nomad_log_level: "DEBUG"
+nomad_log_json: true
+nomad_log_include_location: true
+nomad_log_file: "/var/log/nomad.log"
+nomad_enable_debug: true
+
+nomad_server_enabled: false
+nomad_server_bootstrap_expect: 1
+nomad_server_server_join: []
+
+nomad_client_enabled: false
+nomad_client_node_class: ""
+nomad_client_node_pool: ""
+nomad_client_server_join: []
+
+nomad_extra_config_files: []

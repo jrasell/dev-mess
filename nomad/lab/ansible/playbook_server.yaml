@@ -1,0 +1,11 @@
+- hosts: uk1-servers
+  roles:
+    - role: common
+    - role: nomad
+      nomad_binary_path: "/opt/nomad-pkg/linux_arm64/nomad"
+      nomad_region: "uk1"
+      nomad_datacenter: "kent"
+      nomad_bind_addr: "{{ ansible_enp0s2.ipv4.address }}"
+      nomad_server_enabled: true
+      nomad_server_bootstrap_expect: 3
+      nomad_server_server_join: ["192.168.1.110", "192.168.1.111", "192.168.1.112"]

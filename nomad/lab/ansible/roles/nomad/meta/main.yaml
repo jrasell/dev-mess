@@ -1,0 +1,6 @@
+dependencies:
+  - role: "hashicorp_release"
+    vars:
+      hashicorp_release_product_name: "nomad"
+      hashicorp_release_product_version: "{{ nomad_version }}"
+    when: nomad_binary_path is undefined

@@ -1,0 +1,72 @@
+- import_tasks: install.yaml
+  when: nomad_binary_path is defined
+
+- name: "create_config_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ nomad_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: "create_data_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ nomad_data_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: "create_log_file"
+  become: true
+  ansible.builtin.file:
+    state: touch
+    path: "{{ nomad_log_file }}"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0750"
+
+- name: "create_base_config_file"
+  become: true
+  ansible.builtin.template:
+    src: "nomad.hcl.j2"
+    dest: "{{ nomad_config_dir }}/nomad.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  notify:
+    - "restart_nomad"
+
+- name: "create_server_config_file"
+  become: true
+  ansible.builtin.template:
+    src: "server.hcl.j2"
+    dest: "{{ nomad_config_dir }}/server.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  when: nomad_server_enabled is true
+  notify:
+    - "restart_nomad"
+
+- name: "create_client_config_file"
+  become: true
+  ansible.builtin.template:
+    src: "client.hcl.j2"
+    dest: "{{ nomad_config_dir }}/client.hcl"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  when: nomad_client_enabled is true
+  notify:
+    - "restart_nomad"
+
+- name: "create_additional_config_files"
+  become: true
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ nomad_config_dir }}/{{ item.dest }}"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0655"
+  loop: "{{ nomad_extra_config_files }}"
+  notify:
+    - "restart_nomad"

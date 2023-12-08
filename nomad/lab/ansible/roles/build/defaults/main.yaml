@@ -1,0 +1,15 @@
+build_apt_packages: [
+  "build-essential",
+  "curl",
+  "git",
+  "make",
+  "unzip"
+]
+
+build_nomad_code_path: "/opt/nomad-code"
+
+build_dev_make_commands: [
+  "lint-deps",
+  "bootstrap",
+  "dev",
+]

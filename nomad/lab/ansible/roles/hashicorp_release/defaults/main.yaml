@@ -1,0 +1,14 @@
+hashicorp_release_product_name: ""
+hashicorp_release_product_version: ""
+hashicorp_release_product_install_dir: "/usr/local/bin"
+
+hashicorp_release_zip_url: "https://releases.hashicorp.com/{{ hashicorp_release_product_name }}/{{ hashicorp_release_product_version }}/{{ hashicorp_release_product_name }}_{{ hashicorp_release_product_version }}_linux_{{ hashicorp_release_architecture }}.zip"
+hashicorp_release_architecture_map:
+  amd64: "amd64"
+  x86_64: "amd64"
+  armv7l: "arm"
+  aarch64: "arm64"
+  32-bit: "386"
+  64-bit: "amd64"
+
+hashicorp_release_architecture: "{{ hashicorp_release_architecture_map[ansible_architecture] }}"

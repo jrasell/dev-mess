@@ -1,0 +1,13 @@
+{% if nomad_client_enabled %}
+client {
+  enabled    = true
+  node_class = "{{ nomad_client_node_class }}"
+  node_pool  = "{{ nomad_client_node_pool }}"
+
+{% if nomad_client_server_join | length > 0 %}
+  server_join {
+    retry_join = {{ nomad_client_server_join | to_json }}
+  }
+{% endif %}
+}
+{% endif %}

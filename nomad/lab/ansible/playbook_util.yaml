@@ -1,0 +1,7 @@
+- hosts: util
+  roles:
+    - role: gantsign.golang
+      golang_gopath: "/home/jrasell/go"
+      golang_version: "1.21.4"
+    - role: common
+    - role: build
