@@ -1,0 +1,5 @@
+- name: "disable_motd"
+  become: true
+  copy:
+    dest: "/etc/default/motd-news"
+    content: "ENABLED=0"

@@ -5,3 +5,6 @@
     state: "present"
     update_cache: true
   loop: "{{ common_apt_packages }}"
+
+- ansible.builtin.include_tasks: "debian_motd.yaml"
+  when: ansible_distribution == "Ubuntu"
