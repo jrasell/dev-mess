@@ -9,3 +9,10 @@
       nomad_server_enabled: true
       nomad_server_bootstrap_expect: 3
       nomad_server_server_join: ["192.168.1.110", "192.168.1.111", "192.168.1.112"]
+      nomad_tls_enabled: true
+      nomad_tls_ca_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/nomad-agent-ca.pem"
+      nomad_tls_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-server-nomad.pem"
+      nomad_tls_cert_key: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-server-nomad-key.pem"
+      nomad_cli_profile_enabled: true
+      nomad_cli_tls_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-cli-nomad.pem"
+      nomad_cli_tls_cert_key: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-cli-nomad.pem"

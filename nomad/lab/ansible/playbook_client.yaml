@@ -11,3 +11,7 @@
       nomad_bind_addr: "{{ ansible_enp0s2.ipv4.address }}"
       nomad_client_enabled: true
       nomad_client_server_join: ["192.168.1.110", "192.168.1.111", "192.168.1.112"]
+      nomad_tls_enabled: true
+      nomad_tls_ca_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/nomad-agent-ca.pem"
+      nomad_tls_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-client-nomad.pem"
+      nomad_tls_cert_key: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-client-nomad-key.pem"

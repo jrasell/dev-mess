@@ -1,0 +1,23 @@
+- name: "create_nomad_cli_profile"
+  become: true
+  ansible.builtin.template:
+    src: "nomad_profile.sh.j2"
+    dest: "/etc/profile.d/nomad.sh"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: "write_cli_tls_files"
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    src: "{{ item.src }}"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
+    mode: "0644"
+  when: nomad_tls_enabled is true
+  loop:
+    - dest: "{{ nomad_config_dir }}/tls/cli.pem"
+      src: "{{ nomad_tls_cert }}"
+    - dest: "{{ nomad_config_dir }}/tls/cli-key.pem"
+      src: "{{ nomad_tls_cert_key }}"

@@ -16,3 +16,6 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform.tfstate.lock.info
 .terraform
+
+# TLS certificate files.
+.tls/

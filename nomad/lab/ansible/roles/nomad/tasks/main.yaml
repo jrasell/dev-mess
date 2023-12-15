@@ -70,3 +70,8 @@
   loop: "{{ nomad_extra_config_files }}"
   notify:
     - "restart_nomad"
+
+- import_tasks: tls.yaml
+
+- import_tasks: cli.yaml
+  when: nomad_cli_profile_enabled is true
