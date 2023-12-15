@@ -27,8 +27,8 @@
 - name: "create_base_config_file"
   become: true
   ansible.builtin.template:
-    src: "nomad.hcl.j2"
-    dest: "{{ nomad_config_dir }}/nomad.hcl"
+    src: "base.hcl.j2"
+    dest: "{{ nomad_config_dir }}/base.hcl"
     owner: "{{ nomad_user }}"
     group: "{{ nomad_group }}"
     mode: "0655"
