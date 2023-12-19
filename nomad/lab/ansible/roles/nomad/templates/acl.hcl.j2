@@ -1,0 +1,14 @@
+{% if nomad_acl_enabled %}
+acl {
+  enabled    = true
+  token_ttl  = "{{ nomad_acl_token_ttl }}"
+  policy_ttl = "{{ nomad_acl_policy_ttl }}"
+  role_ttl   = "{{ nomad_acl_role_ttl }}"
+
+  {% if nomad_server_enabled %}
+  replication_token        = "{{ nomad_acl_replication_token }}"
+  token_min_expiration_ttl = "{{ nomad_acl_token_min_expiration_ttl }}"
+  token_max_expiration_ttl = "{{ nomad_acl_token_max_expiration_ttl }}"
+  {% endif %}
+}
+{% endif %}

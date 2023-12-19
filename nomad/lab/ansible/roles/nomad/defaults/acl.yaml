@@ -1,0 +1,7 @@
+nomad_acl_enabled: false
+nomad_acl_token_ttl: "30s"
+nomad_acl_policy_ttl: "30s"
+nomad_acl_role_ttl: "30s"
+nomad_acl_token_min_expiration_ttl: "1m"
+nomad_acl_token_max_expiration_ttl: "24h"
+nomad_acl_replication_token: ""
