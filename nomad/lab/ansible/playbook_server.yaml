@@ -1,4 +1,4 @@
-- hosts: uk1-servers
+- hosts: uk1_servers
   roles:
     - role: common
     - role: nomad

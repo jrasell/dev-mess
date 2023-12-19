@@ -1,4 +1,4 @@
-uk1-servers:
+uk1_servers:
   hosts:
     uk1-s0:
       ansible_host: 192.168.1.110
@@ -9,7 +9,7 @@ uk1-servers:
   vars:
     ansible_user: jrasell
 
-uk1-clients:
+uk1_clients:
   hosts:
     uk1-c0:
       ansible_host: 192.168.1.120

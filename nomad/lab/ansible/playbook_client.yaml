@@ -1,4 +1,4 @@
-- hosts: uk1-clients
+- hosts: uk1_clients
   roles:
     - role: common
     - role: "geerlingguy.docker"
