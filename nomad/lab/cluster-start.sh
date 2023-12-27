@@ -2,6 +2,34 @@
 
 set -eux -o
 
+function generate_tls_certs() {
+
+  if [ ! -d "./.tls" ]; then
+    mkdir ./.tls
+  fi
+
+  pushd ./.tls
+
+  nomad tls ca create
+
+  nomad tls cert create \
+    -server \
+    -region=uk1 \
+    -additional-ipaddress="192.168.1.110" \
+    -additional-ipaddress="192.168.1.111" \
+    -additional-ipaddress="192.168.1.112"
+
+  nomad tls cert create \
+    -client \
+    -region=uk1 \
+    -additional-ipaddress="192.168.1.120" \
+    -additional-ipaddress="192.168.1.121"
+
+  nomad tls cert create -cli -region=uk1
+
+  popd
+}
+
 function start_util() {
   multipass launch \
     --name="uk1-util0" \
@@ -36,5 +64,6 @@ function start_cluster_agents() {
     done
 }
 
+generate_tls_certs
 start_util "$@"
 start_cluster_agents "$@"
