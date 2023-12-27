@@ -1,3 +1,13 @@
+- name: "check_timedatectl_ntpd"
+  become: true
+  ansible.builtin.command: "timedatectl"
+  register: timedatectl_ntpd_status
+
+- name: "disable_timedatectl_ntp"
+  become: true
+  ansible.builtin.command: "timedatectl set-ntp no"
+  when: '"NTP service: active" in timedatectl_ntpd_status.stdout'
+
 - name: "install_packages"
   become: true
   ansible.builtin.apt:
