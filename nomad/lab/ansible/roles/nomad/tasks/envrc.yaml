@@ -1,0 +1,8 @@
+- name: "write_local_envrc_file"
+  ansible.builtin.template:
+    src: "envrc.j2"
+    dest: "{{ (nomad_cli_direnv_path, '.envrc') | path_join }}"
+    mode: "0755"
+  delegate_to: localhost
+  when: nomad_cli_direnv_path is defined
+  run_once: true

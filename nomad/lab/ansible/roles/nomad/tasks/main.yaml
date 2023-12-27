@@ -76,3 +76,6 @@
 
 - import_tasks: cli.yaml
   when: nomad_cli_profile_enabled is true
+
+- import_tasks: envrc.yaml
+  when: nomad_cli_direnv_path is defined

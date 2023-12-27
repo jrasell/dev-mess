@@ -19,3 +19,6 @@ terraform.tfstate.backup
 
 # TLS certificate files.
 .tls/
+
+# envrc files.
+.envrc
