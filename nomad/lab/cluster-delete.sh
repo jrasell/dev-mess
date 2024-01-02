@@ -25,6 +25,12 @@ function delete_tls_certs() {
   fi
 }
 
+function delete_envrc_file() {
+  if [ -f "./.envrc" ]; then
+    rm "./.envrc"
+  fi
+}
+
 function delete_machines() {
   machine_list=(
     "uk1-s0"
@@ -41,4 +47,5 @@ function delete_machines() {
 }
 
 delete_tls_certs
+delete_envrc_file
 delete_machines
