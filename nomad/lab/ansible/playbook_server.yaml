@@ -17,3 +17,4 @@
       nomad_cli_profile_enabled: true
       nomad_cli_tls_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-cli-nomad.pem"
       nomad_cli_tls_cert_key: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-cli-nomad.pem"
+      nomad_cli_direnv_path: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab"
