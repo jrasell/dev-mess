@@ -14,6 +14,10 @@ and configuration. As with Multipass, the
 [installation guide](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 can be used to ensure you have this available locally.
 
+[direnv](https://direnv.net/) can be used to optionally load Nomad client
+environment variables from the written `.envrc` file. This allows for easy local
+connectivity to the Nomad API.
+
 The cloud-init scripts currently install my public SSH key. If you are using
 these scripts, you should update this to use your own key. The
 [cloud-init](./multipass/cloud-init) directory contains the files you will need
@@ -39,6 +43,13 @@ them. If you have changed the static IP addresses of the machines, you will also
 need to update the [Ansible inventory file](./ansible/inventory.yaml).
 ```
 $ ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook_cluster.yaml
+```
+
+# Bootstrapping
+Once the base cluster is provisioned and running, you can bootstrap the remaining
+parts such as ACLs using the [cluster-bootstrap](./cluster-bootstrap.sh) script.
+```
+$ ./cluster-bootstrap.sh
 ```
 
 ## Deleting
