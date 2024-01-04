@@ -23,6 +23,6 @@ nomad_server_server_join: []
 nomad_client_enabled: false
 nomad_client_node_class: ""
 nomad_client_node_pool: ""
+nomad_client_network_interface: ""
 nomad_client_server_join: []
-
-nomad_extra_config_files: []
+nomad_extra_client_config_files: []
