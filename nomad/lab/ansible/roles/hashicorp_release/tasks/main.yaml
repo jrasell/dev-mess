@@ -11,9 +11,9 @@
     remote_src: "yes"
     src: "/tmp/{{ hashicorp_release_product_name }}.zip"
     dest: "{{ hashicorp_release_product_install_dir }}"
-    creates: "{{ hashicorp_release_product_install_dir }}/hashicorp_release_product_name"
-    owner: "{{ nomad_user }}"
-    group: "{{ nomad_group }}"
+    creates: "{{ hashicorp_release_product_install_dir }}/{{ hashicorp_release_product_name }}"
+    owner: "root"
+    group: "root"
     mode: "0755"
   become: true
 
