@@ -38,16 +38,9 @@ a local copy of the Nomad codebase.
 $ ./cluster-start.sh "/Users/jrasell/Projects/Go/nomad"
 ```
 
-Once Multipass has launched the machines, you can use Ansible to bootstrap
-them. If you have changed the static IP addresses of the machines, you will also
-need to update the [Ansible inventory file](./ansible/inventory.yaml).
-```
-$ ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook_cluster.yaml
-```
-
 # Bootstrapping
-Once the base cluster is provisioned and running, you can bootstrap the remaining
-parts such as ACLs using the [cluster-bootstrap](./cluster-bootstrap.sh) script.
+Once the base instances are running, you can bootstrap the cluster, including
+ACLs, by using the [cluster-bootstrap](./cluster-bootstrap.sh) script.
 ```
 $ ./cluster-bootstrap.sh
 ```
