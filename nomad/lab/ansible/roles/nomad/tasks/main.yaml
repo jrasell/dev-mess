@@ -59,7 +59,7 @@
   notify:
     - "restart_nomad"
 
-- name: "create_additional_client_config_files"
+- name: "create_additional_config_files"
   become: true
   ansible.builtin.template:
     src: "{{ item }}"
@@ -67,8 +67,7 @@
     owner: "{{ nomad_user }}"
     group: "{{ nomad_group }}"
     mode: "0655"
-  loop: "{{ nomad_extra_client_config_files }}"
-  when: nomad_client_enabled is true
+  loop: "{{ nomad_extra_config_files }}"
   notify:
     - "restart_nomad"
 

@@ -17,4 +17,4 @@
       nomad_tls_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-client-nomad.pem"
       nomad_tls_cert_key: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-client-nomad-key.pem"
       nomad_acl_enabled: true
-      nomad_extra_client_config_files: ["/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/ansible/files/docker.hcl"]
+      nomad_extra_config_files: ["/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/ansible/files/docker.hcl"]
