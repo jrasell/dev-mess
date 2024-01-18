@@ -7,6 +7,8 @@
     group: "{{ nomad_group }}"
     mode: "0777"
   become: true
+  notify:
+    - "restart_nomad"
 
 - name: "create_service_file"
   become: true
