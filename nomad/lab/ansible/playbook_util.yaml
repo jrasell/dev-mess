@@ -2,6 +2,7 @@
   roles:
     - role: gantsign.golang
       golang_gopath: "/home/jrasell/go"
-      golang_version: "1.21.4"
+      golang_version: "1.21.6"
+      golang_redis_sha256sum: "e2e8aa88e1b5170a0d495d7d9c766af2b2b6c6925a8f8956d834ad6b4cacbd9a"
     - role: common
     - role: build
