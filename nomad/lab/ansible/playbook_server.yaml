@@ -19,3 +19,4 @@
       nomad_cli_tls_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-cli-nomad.pem"
       nomad_cli_tls_cert_key: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-cli-nomad-key.pem"
       nomad_cli_direnv_path: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab"
+      nomad_extra_config_files: ["/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/ansible/files/limit.hcl"]
