@@ -1,0 +1,12 @@
+prometheus_node_exporter_install_dir: "/usr/local/bin"
+prometheus_node_exporter_version: "1.7.0"
+
+prometheus_node_exporter_user: root
+prometheus_node_exporter_group: root
+
+prometheus_node_exporter_arch_map:
+  x86_64: "amd64"
+  aarch64: "arm64"
+
+prometheus_node_exporter_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_node_exporter_version }}/node_exporter-{{ prometheus_node_exporter_version }}.{{ ansible_system | lower }}-{{ prometheus_node_exporter_arch_map[ansible_architecture] }}.tar.gz"
+prometheus_node_exporter_tar_file: "node_exporter-{{ prometheus_node_exporter_version }}.{{ ansible_system | lower }}-{{ prometheus_node_exporter_arch_map[ansible_architecture] }}"

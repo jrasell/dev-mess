@@ -1,6 +1,7 @@
 - hosts: uk1_servers
   roles:
     - role: common
+    - role: prometheus_node_exporter
     - role: nomad
       nomad_binary_path: "/opt/nomad-pkg/linux_arm64/nomad"
       nomad_region: "uk1"

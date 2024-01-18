@@ -1,0 +1,10 @@
+- name: "restart_prometheus_node_exporter"
+  become: true
+  ansible.builtin.service:
+    name: "prometheus_node_exporter"
+    state: "restarted"
+
+- name: "reload_systemd"
+  become: true
+  ansible.builtin.systemd:
+    daemon_reexec: true
