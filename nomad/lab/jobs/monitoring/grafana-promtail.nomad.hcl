@@ -39,6 +39,13 @@ scrape_configs:
       - localhost
       labels:
         __path__: /opt/nomad/data/alloc/*/alloc/logs/*std*.{?,??}
+
+  - job_name: nomad_client
+    static_configs:
+    - targets:
+      - localhost
+      labels:
+        __path__: /var/log/nomad.log
 EOH
         destination = "${NOMAD_TASK_DIR}/promtail-config.yaml"
       }
@@ -65,6 +72,16 @@ EOH
           type     = "bind"
           target   = "/opt/nomad/data/alloc"
           source   = "/opt/nomad/data/alloc"
+          readonly = true
+          bind_options {
+            propagation = "rshared"
+          }
+        }
+
+        mount {
+          type     = "bind"
+          target   = "/var/log/nomad.log"
+          source   = "/var/log/nomad.log"
           readonly = true
           bind_options {
             propagation = "rshared"
