@@ -55,11 +55,6 @@ job "traefik" {
       }
 
       template {
-        data        = file("./.tls/nomad-agent-ca.pem")
-        destination = "${NOMAD_TASK_DIR}/ca.pem"
-      }
-
-      template {
         destination = "${NOMAD_TASK_DIR}/traefik.yml"
         data        = <<-EOH
 api:
@@ -81,12 +76,7 @@ providers:
     prefix: traefik
     stale: true
     endpoint:
-      address: https://{{ env "NOMAD_IP_api" }}:4646
-      tls:
-        ca: {{ env "NOMAD_TASK_DIR" }}/ca.pem
-
-serversTransport:
-  insecureSkipVerify: true
+      address: unix://{{ env "NOMAD_SECRETS_DIR" }}/api.sock
 EOH
       }
 
