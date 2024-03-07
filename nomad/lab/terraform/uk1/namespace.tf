@@ -1,5 +1,6 @@
 locals {
   namespaces = [
+    "platform-autoscaling",
     "platform-ingress",
     "platform-monitoring",
     "platform-testing",
