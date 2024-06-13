@@ -3,7 +3,7 @@
 set -eux -o
 
 function bootstrap_machines() {
-  ansible-playbook -i ./ansible/inventory.yaml ./ansible/playbook_cluster.yaml
+  ansible-playbook -i ./inventory.yaml ./playbook_cluster.yaml
 }
 
 function bootstrap_acls() {

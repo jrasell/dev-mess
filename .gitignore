@@ -22,3 +22,7 @@ terraform.tfstate.backup
 
 # envrc files.
 .envrc
+
+# Ansible Galaxy Roles.
+gantsign.golang/
+geerlingguy.docker/

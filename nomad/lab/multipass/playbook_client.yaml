@@ -13,8 +13,8 @@
       nomad_client_server_join: ["192.168.1.110", "192.168.1.111", "192.168.1.112"]
       nomad_client_network_interface: "enp0s2"
       nomad_tls_enabled: true
-      nomad_tls_ca_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/nomad-agent-ca.pem"
-      nomad_tls_cert: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-client-nomad.pem"
-      nomad_tls_cert_key: "/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/.tls/uk1-client-nomad-key.pem"
+      nomad_tls_ca_cert: "{{ playbook_dir }}/.tls/nomad-agent-ca.pem"
+      nomad_tls_cert: "{{ playbook_dir }}/.tls/uk1-client-nomad.pem"
+      nomad_tls_cert_key: "{{ playbook_dir }}/.tls/uk1-client-nomad-key.pem"
       nomad_acl_enabled: true
       nomad_extra_config_files: ["/Users/jrasell/Projects/Infra/dev-mess/nomad/lab/ansible/files/docker.hcl"]

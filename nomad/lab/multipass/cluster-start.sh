@@ -33,13 +33,13 @@ function generate_tls_certs() {
 function start_util() {
   multipass launch \
     --name="uk1-util0" \
-    --cloud-init="./multipass/cloud-init/uk1-util0.yaml" \
+    --cloud-init="./cloud-init/uk1-util0.yaml" \
     --network="name=en0,mode=manual" \
     --disk="30G" \
     --memory="4G" \
     --cpus="2" \
     --mount="$1:/opt/nomad-code/" \
-    22.04
+    lts
 }
 
 function start_cluster_agents() {
@@ -54,13 +54,13 @@ function start_cluster_agents() {
     for i in "${cluster_hosts[@]}"; do
       multipass launch \
         --name="$i" \
-        --cloud-init="./multipass/cloud-init/$i.yml" \
+        --cloud-init="./cloud-init/$i.yml" \
         --network="name=en0,mode=manual" \
         --disk="30G" \
         --memory="4G" \
         --cpus="2" \
         --mount="$1/pkg/:/opt/nomad-pkg/" \
-        22.04
+        lts
     done
 }
 
