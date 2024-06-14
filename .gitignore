@@ -17,6 +17,9 @@ terraform.tfstate.backup
 .terraform.tfstate.lock.info
 .terraform
 
+# Terraform generate SSH keys.
+keys/
+
 # TLS certificate files.
 .tls/
 

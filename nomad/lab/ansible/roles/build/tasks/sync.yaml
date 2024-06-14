@@ -1,0 +1,14 @@
+- name: "synchronize_code"
+  block:
+    - name: "synchronize_nomad_code"
+      ansible.posix.synchronize:
+        src: "{{ build_nomad_local_code_path }}"
+        dest: "/home/{{ ansible_user }}"
+#        rsync_opts:
+#          - "--exclude=.changelog"
+#          - "--exclude=.github"
+#          - "--exclude=.release"
+#          - "--exclude=.semgrep"
+#          - "--exclude=.tours"
+
+  when: build_nomad_local_code_path != ""

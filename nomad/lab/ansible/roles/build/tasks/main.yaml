@@ -8,6 +8,11 @@
 
 - name: "git_mark_safe"
   ansible.builtin.command: "git config --global --add safe.directory {{ build_nomad_code_path }}"
+  tags:
+    - "mounted"
+
+- import_tasks: sync.yaml
+  when: build_nomad_local_code_path is defined
 
 - name: "check_dev_binary"
   stat:
