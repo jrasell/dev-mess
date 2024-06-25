@@ -1,0 +1,23 @@
+- hosts: ceph
+  roles:
+    - role: "geerlingguy.docker"
+      become: true
+    - role: ceph
+      ceph_cephadm_install_method: "direct"
+      ceph_cephadm_bootstrap: true
+      ceph_cephadm_bootstrap_args: [
+        '--mon-ip={{ hostvars[ "ceph-0" ][ "ansible_default_ipv4" ][ "address" ] }}',
+        '--single-host-defaults',
+        '--skip-monitoring-stack',
+        '--initial-dashboard-password=password',
+        '--dashboard-password-noupdate',
+        '--allow-fqdn-hostname'
+      ]
+      ceph_cephadm_bootstrap_hosts: [ {
+        "ip": '{{ hostvars[ "ceph-0" ][ "ansible_default_ipv4" ][ "address" ] }}',
+        "hostname": '{{ hostvars[ "ceph-0" ][ "ansible_fqdn" ] }}',
+      } ]
+      ceph_cephadm_bootstrap_mons: [ { "hostname": '{{ hostvars[ "ceph-0" ][ "ansible_fqdn" ] }}' } ]
+      ceph_cephadm_bootstrap_mgrs: [ { "hostname":  '{{ hostvars[ "ceph-0" ][ "ansible_fqdn" ] }}' } ]
+      ceph_cephadm_bootstrap_osd_hosts: [ { "hostname": '{{ hostvars[ "ceph-0" ][ "ansible_fqdn" ] }}' } ]
+      ceph_cephadm_bootstrap_osd_paths: [ "/dev/nvme1n1" ]

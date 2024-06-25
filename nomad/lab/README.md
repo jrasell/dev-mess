@@ -47,3 +47,38 @@ To stop and delete the Multipass machines, you can execute the
 ```
 $ ./cluster-delete.sh
 ```
+
+## AWS Ceph Standalone
+The [AWS ceph-standalone](./aws/ceph-standalone) directory contains configuration and scripts for
+running [Ceph](https://ceph.com/en/) on a single EC2 instance.
+
+### Requirements
+[Terraform](https://www.terraform.io/) is used to build the infrastructure components in AWS. You
+can use the [installation guide](https://developer.hashicorp.com/terraform/install?product_intent=terraform)
+to ensure you have this available locally.
+
+[Ansible](https://docs.ansible.com/) is used to perform machine bootstrapping and configuration.
+As with Multipass, the
+[installation guide](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+can be used to ensure you have this available locally.
+
+### Starting
+Navigate to the [AWS ceph-standalone](./aws/ceph-standalone) directory and use Terraform to build
+the base infrastructure.
+```console
+$ terraform init
+$ terraform plan
+$ terraform apply --auto-approve
+```
+
+## Bootstrapping
+Once the Terraform apply command is finished, you can use Ansible to bootstrap the Ceph cluster.
+```console
+$ ansible-playbook -i inventory.yaml playbook_ceph.yaml
+```
+
+### Deleting
+To delete the infrastructure, you can use Terraform.
+```console
+$ terraform destory
+```

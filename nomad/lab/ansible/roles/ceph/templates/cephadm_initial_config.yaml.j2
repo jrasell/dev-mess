@@ -1,0 +1,41 @@
+{%- for host in ceph_cephadm_bootstrap_hosts %}
+---
+service_type: host
+addr: {{ host['ip'] }}
+hostname: {{ host['hostname'] }}
+{% endfor %}
+{% if ceph_cephadm_bootstrap_mons | length > 0 %}
+---
+service_type: mon
+placement:
+  hosts:
+{% endif %}
+{%- for host in ceph_cephadm_bootstrap_mons %}
+    - {{ host['hostname'] }}
+{% endfor %}
+{% if ceph_cephadm_bootstrap_mgrs | length > 0 %}
+---
+service_type: mgr
+placement:
+  hosts:
+{% endif %}
+{%- for host in ceph_cephadm_bootstrap_mgrs %}
+    - {{ host['hostname'] }}
+{% endfor %}
+{% if ceph_cephadm_bootstrap_osd_hosts | length > 0 %}
+---
+service_type: osd
+service_id: default_drive_group
+placement:
+  hosts:
+{% endif %}
+{%- for host in ceph_cephadm_bootstrap_osd_hosts %}
+    - {{ host['hostname'] }}
+{% endfor %}
+{% if ceph_cephadm_bootstrap_osd_paths | length > 0 %}
+data_devices:
+  paths:
+{% endif %}
+{%- for path in ceph_cephadm_bootstrap_osd_paths %}
+    - {{ path }}
+{% endfor %}

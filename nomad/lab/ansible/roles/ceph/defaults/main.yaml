@@ -1,0 +1,13 @@
+ceph_version: 18.2.2
+
+ceph_cephadm_install_dir: "/usr/bin"
+ceph_cephadm_install_method: "none"
+ceph_cephadm_download_url: "https://download.ceph.com/rpm-{{ ceph_version }}/el9/noarch/cephadm"
+
+ceph_cephadm_bootstrap: false
+ceph_cephadm_bootstrap_args: [ ]
+ceph_cephadm_bootstrap_hosts: [ ]
+ceph_cephadm_bootstrap_mons: [ ]
+ceph_cephadm_bootstrap_mgrs: [ ]
+ceph_cephadm_bootstrap_osd_hosts: [ ]
+ceph_cephadm_bootstrap_osd_paths: [ ]

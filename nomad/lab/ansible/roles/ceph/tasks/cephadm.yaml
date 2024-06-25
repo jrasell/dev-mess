@@ -1,0 +1,59 @@
+- name: "stat_cephadm_binary"
+  stat:
+    path: "{{ ceph_cephadm_install_dir }}/cephadm"
+  register: cephadm_binary
+
+- name: "check_cephadm_binary"
+  ansible.builtin.command: "cephadm version"
+  register: cephadm_binary_version
+  become: false
+  changed_when: false
+  failed_when: false
+
+- block:
+    - name: "download_cephadm_binary"
+      ansible.builtin.get_url:
+        url: "{{ ceph_cephadm_download_url }}"
+        dest: "/tmp/cephadm"
+        timeout: "60"
+        mode: "600"
+      become: false
+    - name: "move_cephadm_binary"
+      ansible.builtin.copy:
+        src: "/tmp/cephadm"
+        dest: "{{ ceph_cephadm_install_dir }}/cephadm"
+        owner: "root"
+        group: "root"
+        mode: "0755"
+        remote_src: true
+      become: true
+    - name: "remove_cephadm_tmp_binary"
+      ansible.builtin.file:
+        path: "/tmp/cephadm"
+        state: "absent"
+  when:
+    - "not cephadm_binary.stat.exists or cephadm_binary_version is not defined or ceph_version|string not in cephadm_binary_version.stdout"
+    - ceph_cephadm_install_method == "direct"
+
+- name: "stat_ceph_config"
+  stat:
+    path: "/etc/ceph/ceph.conf"
+  register: ceph_config
+
+- block:
+    - name: "write_cephadm_initial_config"
+      ansible.builtin.template:
+        src: cephadm_initial_config.yaml.j2
+        dest: /tmp/cephadm_initial_config.yaml
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      become: true
+    - name: "run_cephadm_bootstrap_cmd"
+      ansible.builtin.command: "{{ ceph_cephadm_install_dir }}/cephadm bootstrap {{ ceph_cephadm_bootstrap_args | join(' ') }} --apply-spec=/tmp/cephadm_initial_config.yaml"
+      become: yes
+      register: cephadm_bootstrap_cmd
+    - debug: msg="{{ cephadm_bootstrap_cmd.stdout }}"
+  when:
+    - ceph_cephadm_bootstrap is true and not ceph_config.stat.exists
+
