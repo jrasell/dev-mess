@@ -22,6 +22,7 @@ locals {
   lab_region        = "eu-west-2"
   lab_name          = "ceph-standalone"
   lab_owner         = "jrasell"
+  lab_ansible_user  = "jrasell"
   ec2_ami_id        = "ami-03628db51da52eeaa"
   ec2_instance_type = "t3.large"
   ec2_user_data     = <<EOH
@@ -148,7 +149,7 @@ resource "ansible_group" "ceph" {
   name = "ceph"
 
   variables = {
-    ansible_user = "jrasell"
+    ansible_user = local.lab_ansible_user
   }
 }
 

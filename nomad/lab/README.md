@@ -64,7 +64,8 @@ can be used to ensure you have this available locally.
 
 ### Starting
 Navigate to the [AWS ceph-standalone](./aws/ceph-standalone) directory and use Terraform to build
-the base infrastructure.
+the base infrastructure. Unless you are jrasell, you'll likely need to make changes to the local
+variables before running Terraform.
 ```console
 $ terraform init
 $ terraform plan
