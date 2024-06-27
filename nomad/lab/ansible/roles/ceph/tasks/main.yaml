@@ -1,2 +1,5 @@
 - import_tasks: cephadm.yaml
   when: ceph_cephadm_install_method is not none
+
+- import_tasks: nvmeof.yaml
+  when: ceph_nvmeof_bootstrap is true

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eux -o
+
+function setup_nvmeof() {
+    cephadm shell -- ceph osd pool create {{ ceph_nvmeof_bootstrap_pool_name }}
+    cephadm shell -- rbd pool init {{ ceph_nvmeof_bootstrap_pool_name }}
+    cephadm shell -- ceph config set mgr mgr/cephadm/container_image_nvmeof {{ ceph_nvmeof_bootstrap_container_image }}
+    cephadm shell -- ceph orch apply nvmeof {{ ceph_nvmeof_bootstrap_pool_name }} {{ ceph_nvmeof_bootstrap_placement_hosts | join(' ') }}
+}
+
+setup_nvmeof

@@ -24,7 +24,7 @@ locals {
   lab_owner         = "jrasell"
   lab_ansible_user  = "jrasell"
   ec2_ami_id        = "ami-03628db51da52eeaa"
-  ec2_instance_type = "t3.large"
+  ec2_instance_type = "m5.xlarge"
   ec2_user_data     = <<EOH
 #cloud-config
 ---
@@ -63,10 +63,16 @@ resource "aws_instance" "ceph" {
     volume_type = "gp3"
   }
 
+  # Add two EBS block devices which can be assigned to Ceph for management.
   ebs_block_device {
     volume_size = 50
     volume_type = "gp3"
     device_name = "/dev/xvdc"
+  }
+  ebs_block_device {
+    volume_size = 50
+    volume_type = "gp3"
+    device_name = "/dev/xvdd"
   }
 
   tags = {
@@ -164,4 +170,8 @@ resource "ansible_host" "ceph" {
 
 output "instance_public_ip" {
   value = aws_instance.ceph.public_ip
+}
+
+output "message" {
+  value = "Once bootstrapped, the Ceph UI will be at: https://${aws_instance.ceph.public_ip}:8443"
 }

@@ -11,3 +11,9 @@ ceph_cephadm_bootstrap_mons: [ ]
 ceph_cephadm_bootstrap_mgrs: [ ]
 ceph_cephadm_bootstrap_osd_hosts: [ ]
 ceph_cephadm_bootstrap_osd_paths: [ ]
+
+ceph_nvmeof_bootstrap: false
+ceph_nvmeof_bootstrap_container_image: "quay.io/ceph/nvmeof:1.0.0"
+ceph_nvmeof_bootstrap_pool_name: "default_0"
+ceph_nvmeof_orch_service_name: "nvmeof.{{ ceph_nvmeof_bootstrap_pool_name }}"
+ceph_nvmeof_bootstrap_placement_hosts: [ ]

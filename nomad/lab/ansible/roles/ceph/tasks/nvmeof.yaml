@@ -1,0 +1,24 @@
+- name: "check_ceph_orch_list"
+  ansible.builtin.command: "cephadm shell -- ceph orch ls --format json-pretty"
+  register: ceph_orch_list
+  become: true
+  changed_when: false
+  failed_when: false
+- debug: msg="{{ ceph_orch_list.stdout }}"
+- debug: msg="{{ ceph_nvmeof_orch_service_name }}"
+
+- block:
+    - name: "write_nvmeof_bootstrap_script"
+      ansible.builtin.template:
+        src: cephadm_nvmeof_setup.sh.j2
+        dest: /tmp/cephadm_nvmeof_setup.sh
+        owner: "root"
+        group: "root"
+        mode: "0744"
+      become: true
+    - name: "run_nvmeof_bootstrap_script"
+      ansible.builtin.command: "/tmp/cephadm_nvmeof_setup.sh"
+      become: yes
+      register: nvmeof_bootstrap_cmd
+  when:
+    - "ceph_orch_list is not defined or ceph_nvmeof_orch_service_name|string not in ceph_orch_list.stdout"

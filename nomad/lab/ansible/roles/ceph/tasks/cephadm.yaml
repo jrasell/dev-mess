@@ -56,4 +56,3 @@
     - debug: msg="{{ cephadm_bootstrap_cmd.stdout }}"
   when:
     - ceph_cephadm_bootstrap is true and not ceph_config.stat.exists
-
