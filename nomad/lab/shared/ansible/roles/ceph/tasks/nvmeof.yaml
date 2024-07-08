@@ -4,8 +4,6 @@
   become: true
   changed_when: false
   failed_when: false
-- debug: msg="{{ ceph_orch_list.stdout }}"
-- debug: msg="{{ ceph_nvmeof_orch_service_name }}"
 
 - block:
     - name: "write_nvmeof_bootstrap_script"

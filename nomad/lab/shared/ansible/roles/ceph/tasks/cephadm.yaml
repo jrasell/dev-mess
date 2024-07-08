@@ -52,7 +52,5 @@
     - name: "run_cephadm_bootstrap_cmd"
       ansible.builtin.command: "{{ ceph_cephadm_install_dir }}/cephadm bootstrap {{ ceph_cephadm_bootstrap_args | join(' ') }} --apply-spec=/tmp/cephadm_initial_config.yaml"
       become: yes
-      register: cephadm_bootstrap_cmd
-    - debug: msg="{{ cephadm_bootstrap_cmd.stdout }}"
   when:
     - ceph_cephadm_bootstrap is true and not ceph_config.stat.exists
