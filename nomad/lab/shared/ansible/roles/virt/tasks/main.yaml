@@ -1,0 +1,24 @@
+- name: "include_apt_package_install"
+  ansible.builtin.include_tasks: "apt_package.yaml"
+  when: ansible_pkg_mgr == "apt"
+
+- name: "check_nvme_fabrics_kernel_mod"
+  ansible.builtin.command: "lsmod  |grep nvme"
+  register: nvme_fabrics_kernel_mod
+  become: true
+  changed_when: false
+  failed_when: false
+
+- name: "load_nvme-tcp_kernel_mod"
+  become: yes
+  ansible.builtin.command: "modprobe nvme-tcp"
+  when:
+    - "check_nvme_fabrics_kernel_mod is not defined or nvme_fabrics|string not in check_nvme_fabrics_kernel_mod.stdout"
+
+- name: "connect_nvme_fabrics_tcp"
+  ansible.builtin.command: "nvme connect -t tcp --traddr {{ item.address }} -s {{ item.port }} -n {{ item.subsystem }}"
+  become: yes
+  loop: "{{ nvme_connect_fabrics_tcp }}"
+  register: nvme_fabrics_tcp_result
+  failed_when:
+    - '"already connected" not in nvme_fabrics_tcp_result.stderr'

@@ -1,0 +1,9 @@
+- hosts: virt
+  roles:
+    - role: virt
+      nvme_connect_fabrics_tcp: [
+        { "address": '{{ hostvars[ "ceph_0" ][ "ansible_default_ipv4" ][ "address" ] }}',
+          "port": 4420,
+          "subsystem": "nqn.2016-06.io.spdk:vm",
+        }
+      ]

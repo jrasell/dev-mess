@@ -1,0 +1,18 @@
+virt_nvme_apt_packages: [
+  "linux-modules-extra-{{ ansible_kernel }}",
+  "nvme-cli",
+]
+
+virt_libvirt_apt_packages: [
+  "bridge-utils",
+  "cpu-checker",
+  "cloud-init",
+  "dnsmasq",
+  "libvirt-daemon-system",
+  "qemu-system",
+  "qemu-system-x86",
+  "qemu-utils",
+  "virt-manager",
+]
+
+virt_nvme_connect_fabrics_tcp: [ ]
