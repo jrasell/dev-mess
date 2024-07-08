@@ -18,6 +18,9 @@ variable "influxdb_admin_password" {
 
 job "influxdb" {
 
+  type      = "service"
+  namespace = "platform-monitoring"
+
   group "influxdb" {
 
     network {
@@ -31,6 +34,11 @@ job "influxdb" {
       name     = "influxdb"
       port     = "influxdb"
       provider = "nomad"
+      tags     = [
+        "traefik.enable=true",
+        "traefik.http.routers.influxdb.entrypoints=influxdb",
+        "traefik.http.routers.influxdb.rule=PathPrefix(`/`)"
+      ]
 
       check {
         name     = "influxdb_http_probe"

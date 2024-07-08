@@ -100,6 +100,16 @@ scrape_configs:
       - targets:
         {{- range nomadService "prometheus-node-exporter" }}
         - {{ .Address }}:{{ .Port }}{{- end }}
+        - 192.168.1.110:9100
+        - 192.168.1.111:9100
+        - 192.168.1.112:9100
+
+  - job_name: "prometheus_nomad_exporter"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets:
+        {{- range nomadService "prometheus-nomad-exporter" }}
+        - {{ .Address }}:{{ .Port }}{{- end }}
 
   - job_name: "google_cadvisor"
     metrics_path: "/cadvisor/metrics"
