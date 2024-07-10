@@ -1,0 +1,6 @@
+- name: "include_apt_package_install"
+  ansible.builtin.include_tasks: "apt.yaml"
+  when: ansible_pkg_mgr == "apt"
+
+- name: "include_sync"
+  ansible.builtin.include_tasks: "sync.yaml"

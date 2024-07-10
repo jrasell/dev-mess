@@ -1,0 +1,6 @@
+- name: "sync_paths"
+  ansible.posix.synchronize:
+    src: "{{ item }}"
+    dest: "/home/{{ ansible_user }}"
+  loop: "{{ helper_sync_local_paths }}"
+  when: helper_sync_local_paths is defined

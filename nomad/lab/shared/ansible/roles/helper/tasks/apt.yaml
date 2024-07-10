@@ -1,0 +1,7 @@
+- name: "install_apt_packages"
+  become: true
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: "present"
+    update_cache: true
+  loop: "{{ helper_apt_packages }}"
