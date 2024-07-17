@@ -1,0 +1,6 @@
+- name: "install_yum_packages"
+  become: true
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: "present"
+  loop: "{{ helper_yum_packages }}"

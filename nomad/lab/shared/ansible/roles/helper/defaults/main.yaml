@@ -1,3 +1,6 @@
 helper_apt_packages: [ ]
+helper_yum_packages: [ ]
 
 helper_sync_local_paths: [ ]
+
+helper_print_host_facts: false

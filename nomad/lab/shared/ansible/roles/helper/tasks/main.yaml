@@ -2,5 +2,14 @@
   ansible.builtin.include_tasks: "apt.yaml"
   when: ansible_pkg_mgr == "apt"
 
+- name: "include_yum_package_install"
+  ansible.builtin.include_tasks: "yum.yaml"
+  when: ansible_pkg_mgr == "dnf" or ansible_pkg_mgr == "yum"
+
 - name: "include_sync"
   ansible.builtin.include_tasks: "sync.yaml"
+
+- name: "print_host_facts"
+  debug:
+    var: hostvars[inventory_hostname]
+  when: helper_print_host_facts is true
