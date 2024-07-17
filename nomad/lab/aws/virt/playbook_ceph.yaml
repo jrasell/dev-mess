@@ -1,7 +1,13 @@
 - hosts: ceph
   roles:
+    - role: helper
+      helper_yum_packages: [
+        "jq",
+      ]
+
     - role: "geerlingguy.docker"
       become: true
+
     - role: ceph
       ceph_cephadm_install_method: "direct"
       ceph_cephadm_bootstrap: true
