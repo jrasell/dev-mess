@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eux -o
+
+DOCKER_NVMEOF_CLII_CMD=docker run -it {{ ceph_nvmeof_cli_container_image }}
+
+SERVER_ADDR=$1
+SERVER_PORT=$2
+RDB_POOL_NAME=$3
+RDB_IMAGE_NAME=$4
+RDB_IMAGE_SIZE=$5
+SUBSYS_NQN=$6
+
+NVMEOF_SERVICE_NAME=$(cephadm shell -- ceph orch ps --service-name nvmeof."$RDB_POOL_NAME" --format json-pretty | jq -r '.[0].daemon_name')
+
+function create_nvmeof_subsys() {
+    cephadm shell -- rbd -p "$RDB_POOL_NAME" create "$RDB_IMAGE_NAME" --size "$RDB_IMAGE_SIZE"
+    $DOCKER_NVMEOF_CLII_CMD --server-address "$SERVER_ADDR" --server-port "$SERVER_PORT" subsystem add --subsystem "$SUBSYS_NQN"
+    $DOCKER_NVMEOF_CLII_CMD --server-address "$SERVER_ADDR" --server-port "$SERVER_PORT" namespace add --subsystem "$SUBSYS_NQN" --rbd-pool "$RDB_POOL_NAME" --rbd-image "$RDB_IMAGE_NAME"
+    $DOCKER_NVMEOF_CLII_CMD --server-address "$SERVER_ADDR" --server-port "$SERVER_PORT" listener add --subsystem "$SUBSYS_NQN" --gateway-name client."$NVMEOF_SERVICE_NAME" --traddr "$SERVER_ADDR" --trsvcid 4420
+    $DOCKER_NVMEOF_CLII_CMD --server-address "$SERVER_ADDR" --server-port "$SERVER_PORT" host add --subsystem "$SUBSYS_NQN" --host "*"
+}
+
+create_nvmeof_subsys "$@"

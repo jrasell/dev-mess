@@ -17,3 +17,5 @@ ceph_nvmeof_bootstrap_container_image: "quay.io/ceph/nvmeof:1.0.0"
 ceph_nvmeof_bootstrap_pool_name: "default_0"
 ceph_nvmeof_orch_service_name: "nvmeof.{{ ceph_nvmeof_bootstrap_pool_name }}"
 ceph_nvmeof_bootstrap_placement_hosts: [ ]
+
+ceph_nvmeof_cli_container_image: "quay.io/ceph/nvmeof-cli:1.0.0"

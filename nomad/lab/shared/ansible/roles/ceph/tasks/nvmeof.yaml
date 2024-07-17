@@ -20,3 +20,12 @@
       register: nvmeof_bootstrap_cmd
   when:
     - "ceph_orch_list is not defined or ceph_nvmeof_orch_service_name|string not in ceph_orch_list.stdout"
+
+- name: "write_nvmeof_subsystem_create_script"
+  ansible.builtin.template:
+    src: nvmeof_subsystem_create.sh.j2
+    dest: /tmp/nvmeof_subsystem_create.sh
+    owner: "root"
+    group: "root"
+    mode: "0744"
+  become: true
