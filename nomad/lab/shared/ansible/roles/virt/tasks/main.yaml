@@ -20,6 +20,7 @@
   become: yes
   loop: "{{ nvme_connect_fabrics_tcp }}"
   register: nvme_fabrics_tcp_result
+  when: nvme_connect_fabrics_tcp is defined
   failed_when: >
     (nvme_fabrics_tcp_result.rc != 0) and
     ("already connected" not in nvme_fabrics_tcp_result.stderr)
