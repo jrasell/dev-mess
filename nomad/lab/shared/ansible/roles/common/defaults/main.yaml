@@ -4,3 +4,5 @@ common_apt_packages: [
   "ntp",
   "unzip",
 ]
+
+common_hostname: ""

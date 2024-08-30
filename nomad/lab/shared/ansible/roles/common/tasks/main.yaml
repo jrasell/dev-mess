@@ -18,3 +18,10 @@
 
 - ansible.builtin.include_tasks: "debian_motd.yaml"
   when: ansible_distribution == "Ubuntu"
+
+- name: "set_hostname"
+  become: true
+  ansible.builtin.hostname:
+    name: "{{ common_hostname }}"
+    use: systemd
+  when: common_hostname is defined
