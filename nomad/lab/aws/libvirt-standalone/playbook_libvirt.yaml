@@ -1,0 +1,20 @@
+- hosts: libvirt
+  roles:
+    - role: common
+      common_hostname: "libvirt-0"
+
+    - role: virt
+
+    - role: gantsign.golang
+      golang_gopath: "/home/jrasell/go"
+      golang_version: "1.22.5"
+      golang_redis_sha256sum: "904b924d435eaea086515bc63235b192ea441bd8c9b198c507e85009e6e4c7f0"
+
+    - role: helper
+      helper_apt_packages: [
+        "build-essential",
+        "git",
+        "libvirt-dev",
+        "make",
+      ]
+      helper_sync_local_paths: [ "/Users/jrasell/Projects/Go/nomad-driver-virt" ]

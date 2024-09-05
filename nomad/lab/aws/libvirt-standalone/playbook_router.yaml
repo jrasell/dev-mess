@@ -1,0 +1,14 @@
+- hosts: router
+  roles:
+    - role: common
+      common_hostname: "router-0"
+
+    - role: helper
+      helper_file_copy_local:
+        [ {
+            "src": "/Users/{{ ansible_user_id }}/.ssh/id_rsa",
+            "dest": "/home/{{ ansible_user_id }}/.ssh/id_rsa",
+            "owner": "{{ ansible_user_id }}",
+            "group": "{{ ansible_user_id }}",
+            "mode": "0600",
+        } ]
