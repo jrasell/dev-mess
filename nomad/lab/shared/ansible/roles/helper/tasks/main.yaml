@@ -6,6 +6,9 @@
   ansible.builtin.include_tasks: "yum.yaml"
   when: ansible_pkg_mgr == "dnf" or ansible_pkg_mgr == "yum"
 
+- name: "include_file"
+  ansible.builtin.include_tasks: "file.yaml"
+
 - name: "include_sync"
   ansible.builtin.include_tasks: "sync.yaml"
 
