@@ -40,6 +40,7 @@ module "workstation" {
 
   ansible_group_name = "workstation"
   component_name     = "workstation"
+  ami_id             = local.ec2_ami_id
   instance_type      = "t3.large"
   security_group_ids = [module.network.security_group_id]
   ssh_key_name       = module.keys.key_name
