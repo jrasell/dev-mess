@@ -6,7 +6,7 @@
     - role: virt
 
     - role: gantsign.golang
-      golang_gopath: "/home/jrasell/go"
+      golang_gopath: "/home/{{ ansible_user_id }}/go"
       golang_version: "1.22.5"
       golang_redis_sha256sum: "904b924d435eaea086515bc63235b192ea441bd8c9b198c507e85009e6e4c7f0"
 
@@ -17,4 +17,4 @@
         "libvirt-dev",
         "make",
       ]
-      helper_sync_local_paths: [ "/Users/jrasell/Projects/Go/nomad-driver-virt" ]
+      helper_sync_local_paths: [ "{{ ansible_user_dir }}/Projects/Go/nomad-driver-virt" ]

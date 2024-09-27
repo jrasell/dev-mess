@@ -6,7 +6,7 @@
     - role: helper
       helper_file_copy_local:
         [ {
-            "src": "/Users/{{ ansible_user_id }}/.ssh/id_rsa",
+            "src": "{{ ansible_user_dir }}/.ssh/id_rsa",
             "dest": "/home/{{ ansible_user_id }}/.ssh/id_rsa",
             "owner": "{{ ansible_user_id }}",
             "group": "{{ ansible_user_id }}",
