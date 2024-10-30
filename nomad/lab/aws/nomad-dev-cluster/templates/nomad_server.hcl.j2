@@ -1,0 +1,22 @@
+data_dir   = "/var/lib/nomad"
+bind_addr  = "{{ hostvars[ "nomad_server_0" ][ "ansible_default_ipv4" ][ "address" ] }}"
+
+log_level            = "DEBUG"
+log_include_location = true
+log_file             = "/var/log/nomad.log"
+enable_debug         = true
+
+telemetry {
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+  prometheus_metrics         = true
+}
+
+server {
+  enabled          = true
+  bootstrap_expect = 1
+}
+
+acl {
+  enabled = true
+}

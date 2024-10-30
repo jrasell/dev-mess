@@ -1,0 +1,27 @@
+- hosts: nomad_server
+  roles:
+    - role: common
+      common_hostname: "nomad-server-0"
+
+    - role: hashicorp_release
+      hashicorp_release_product_name: "vault"
+      hashicorp_release_product_version: "1.18.0"
+
+    - role: gantsign.golang
+      golang_gopath: "/home/{{ ansible_user_id }}/go"
+      golang_version: "1.23.2"
+      golang_redis_sha256sum: "542d3c1705f1c6a1c5a80d5dc62e2e45171af291e755d591c5e6531ef63b454e"
+
+    - role: helper
+      helper_apt_packages:
+        - "build-essential"
+        - "git"
+        - "make"
+      helper_file_write_template:
+        - src: "./templates/nomad_server.hcl.j2"
+          dst: "/home/{{ ansible_user_id }}/nomad_server.hcl"
+        - src: "./templates/nomad_vault.hcl.j2"
+          dst: "/home/{{ ansible_user_id }}/nomad_vault.hcl"
+      helper_file_write_content:
+        - content: "b6e63b6a-527c-14db-9474-063cb1dcc026"
+          dst: "/home/{{ ansible_user_id }}/root_bootstrap_token"
