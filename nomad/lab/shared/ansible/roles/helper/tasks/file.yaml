@@ -7,3 +7,23 @@
     group: "{{ item['group'] | default('root') }}"
     mode: "{{ item['mode'] | default('0755') }}"
   with_items: "{{ helper_file_copy_local }}"
+
+- name: "file_write_template"
+  become: true
+  ansible.builtin.template:
+    src: "{{ item['src'] }}"
+    dest: "{{ item['dst'] }}"
+    owner: "{{ item['owner'] | default('root') }}"
+    group: "{{ item['group'] | default('root') }}"
+    mode: "{{ item['mode'] | default('0755') }}"
+  with_items: "{{ helper_file_write_template }}"
+
+- name: "file_write_content"
+  become: true
+  ansible.builtin.copy:
+    content: "{{ item['content'] }}"
+    dest: "{{ item['dst'] }}"
+    owner: "{{ item['owner'] | default('root') }}"
+    group: "{{ item['group'] | default('root') }}"
+    mode: "{{ item['mode'] | default('0755') }}"
+  with_items: "{{ helper_file_write_content }}"
