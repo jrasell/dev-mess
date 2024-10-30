@@ -59,7 +59,7 @@ advertise {
 
 client {
   network_interface = "<PRIVATE_INTERFACE>"
-  servers           = [""<PRIVATE_IP>":4647"]
+  servers           = ["<PRIVATE_IP>:4647"]
 }
 ```
 
