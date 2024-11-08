@@ -24,9 +24,6 @@ server {
   authoritative_region = "europe-west-1"
   enabled              = true
   bootstrap_expect     = 1
-
-  job_gc_interval  = "5m"
-  job_gc_threshold = "5m"
 }
 
 acl {
