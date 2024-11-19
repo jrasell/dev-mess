@@ -1,7 +1,6 @@
 nomad_user: "root"
 nomad_group: "root"
 nomad_version: "1.6.3"
-nomad_binary_path: ""
 
 nomad_config_dir: "/etc/nomad.d"
 nomad_data_dir: "/opt/nomad/data"
