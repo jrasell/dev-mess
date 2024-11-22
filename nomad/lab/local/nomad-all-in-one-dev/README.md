@@ -8,7 +8,7 @@ $PATH.
 
 Nomad server and client:
 ```console
-nomad agent europe-west-1_nomad_server.hcl
+nomad agent -config=europe-west-1_nomad.hcl
 ```
 
 Bootstrap the ACLs using a pre-defined token (for dev purposes only):
