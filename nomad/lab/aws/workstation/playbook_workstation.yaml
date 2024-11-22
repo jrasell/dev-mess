@@ -1,15 +1,20 @@
 - hosts: workstation
   roles:
+    - role: common
+      common_hostname: "workstation-0"
+
     - role: gantsign.golang
-      golang_gopath: "/home/jrasell/go"
-      golang_version: "1.22.4"
-      golang_redis_sha256sum: "ba79d4526102575196273416239cca418a651e049c2b099f3159db85e7bade7d"
+      golang_gopath: "/home/{{ ansible_user_id }}/go"
+      golang_version: "1.23.2"
+      golang_redis_sha256sum: "542d3c1705f1c6a1c5a80d5dc62e2e45171af291e755d591c5e6531ef63b454e"
 
     - role: cni
 
     - role: "geerlingguy.docker"
       become: true
 
-    - role: build
-      build_nomad_local_code_path: "/Users/jrasell/Projects/go/nomad"
-      build_nomad_code_path: "/home/jrasell/nomad"
+    - role: helper
+      helper_apt_packages:
+        - "build-essential"
+        - "git"
+        - "make"

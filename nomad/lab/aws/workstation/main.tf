@@ -1,8 +1,6 @@
 locals {
   stack_region  = "eu-west-2"
   stack_name    = "workstation"
-  stack_owner   = "jrasell"
-  ansible_user  = "jrasell"
   ec2_ami_id    = "ami-0474244c88b835731"
   ec2_user_data = <<EOH
 #cloud-config
@@ -41,7 +39,7 @@ module "workstation" {
   ansible_group_name = "workstation"
   component_name     = "workstation"
   ami_id             = local.ec2_ami_id
-  instance_type      = "t3.large"
+  instance_type      = "m4.large"
   security_group_ids = [module.network.security_group_id]
   ssh_key_name       = module.keys.key_name
   stack_name         = local.stack_name
