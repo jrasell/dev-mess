@@ -4,12 +4,13 @@ log_level            = "DEBUG"
 log_include_location = true
 enable_debug         = true
 region               = "europe-west-1"
-name                 = "server-1"
 
 telemetry {
-  publish_allocation_metrics = true
-  publish_node_metrics       = true
-  prometheus_metrics         = true
+  in_memory_collection_interval = "1s"
+  in_memory_rention_period      = "10s"
+  publish_allocation_metrics    = true
+  publish_node_metrics          = true
+  prometheus_metrics            = true
 }
 
 client {
