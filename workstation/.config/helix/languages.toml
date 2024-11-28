@@ -7,3 +7,9 @@ formatter   = { command = "goimports" }
 name = "hcl"
 auto-format = true
 formatter = { command = "hclfmt", args = [] }
+
+[[langauge]]
+name = "rust"
+
+[language-server.rust-analyzer.config.check]
+command = "clippy"
