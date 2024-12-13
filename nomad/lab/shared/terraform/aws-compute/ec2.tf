@@ -29,3 +29,20 @@ resource "aws_instance" "instance" {
     Stack = var.stack_name
   }
 }
+
+locals {
+  instance_addrs = tomap({for i, ip in aws_instance.instance[*].public_ip :"instance_${i}" => ip})
+}
+
+resource "null_resource" "wait_cloud-init" {
+  for_each = local.instance_addrs
+
+  provisioner "remote-exec" {
+    connection {
+      host        = each.value
+      user        = var.ansible_user
+      private_key = file("~/.ssh/id_rsa")
+    }
+    inline = ["cloud-init status --wait"]
+  }
+}
