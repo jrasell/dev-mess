@@ -62,6 +62,14 @@ module "nomad_client" {
   user_data          = local.ec2_user_data
 }
 
+module "ansible_provision" {
+  source     = "../../shared/terraform/ansible-provision"
+  depends_on = [module.nomad_server, module.nomad_client]
+
+  ansible_inventory_path = abspath("./inventory.yaml")
+  ansible_playbook_path  = abspath("./playbook_all.yaml")
+}
+
 output "details" {
   value = <<EOH
 SSH commands:
