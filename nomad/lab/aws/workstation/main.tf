@@ -47,6 +47,20 @@ module "workstation" {
   user_data          = local.ec2_user_data
 }
 
-output "message" {
-  value = "workstation IP: ${module.workstation.instance_public_ips[0]}"
+module "ansible_provision" {
+  source     = "../../shared/terraform/ansible-provision"
+  depends_on = [module.workstation]
+
+  ansible_inventory_path = abspath("./inventory.yaml")
+  ansible_playbook_path  = abspath("./playbook_workstation.yaml")
+}
+
+output "details" {
+  value = <<EOH
+SSH commands:
+  Workstation: ssh ${module.workstation.instance_public_ips[0]}
+
+Rsync commands:
+  Workstation: rsync -r /Users/jrasell/Projects/Go/nomad jrasell@${module.workstation.instance_public_ips[0]}:/home/jrasell/
+EOH
 }
