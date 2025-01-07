@@ -77,7 +77,7 @@ SSH commands:
   Nomad Client: ssh ${module.nomad_client.instance_public_ips[0]}
 
 Rsync commands:
-  Nomad Server: rsync -r /Users/jrasell/Projects/Go/nomad jrasell@${module.nomad_server.instance_public_ips[0]}:/home/jrasell/
-  Nomad Client: rsync -r /Users/jrasell/Projects/Go/nomad jrasell@${module.nomad_client.instance_public_ips[0]}:/home/jrasell/
+  Nomad Server: rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${module.nomad_server.instance_public_ips[0]}:/home/jrasell/
+  Nomad Client: rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${module.nomad_client.instance_public_ips[0]}:/home/jrasell/
 EOH
 }
