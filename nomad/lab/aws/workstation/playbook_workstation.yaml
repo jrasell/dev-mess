@@ -12,6 +12,8 @@
 
     - role: "geerlingguy.docker"
       become: true
+      docker_users:
+        - "{{ ansible_user_id }}"
 
     - role: helper
       helper_apt_packages:
