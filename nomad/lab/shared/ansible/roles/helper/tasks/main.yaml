@@ -12,6 +12,9 @@
 - name: "include_sync"
   ansible.builtin.include_tasks: "sync.yaml"
 
+- name: "include_system"
+  ansible.builtin.include_tasks: "systemd.yaml"
+
 - name: "print_host_facts"
   debug:
     var: hostvars[inventory_hostname]

@@ -1,0 +1,7 @@
+- name: "systemd_start_service_{{ helper_systemd_start_service_name }}"
+  become: true
+  when: helper_systemd_start_service_name is defined
+  ansible.builtin.systemd_service:
+    enabled: true
+    state: started
+    name: "{{ helper_systemd_start_service_name }}"

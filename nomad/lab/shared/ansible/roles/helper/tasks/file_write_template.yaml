@@ -1,0 +1,17 @@
+- name: "file_write_template_ensure_dir"
+  become: true
+  file:
+    path: "{{ item.dst | dirname }}"
+    state: directory
+    owner: "{{ item['owner'] | default('root') }}"
+    group: "{{ item['group'] | default('root') }}"
+    mode: "{{ item['mode'] | default('0755') }}"
+
+- name: "file_write_template"
+  become: true
+  ansible.builtin.template:
+    src: "{{ item['src'] }}"
+    dest: "{{ item['dst'] }}"
+    owner: "{{ item['owner'] | default('root') }}"
+    group: "{{ item['group'] | default('root') }}"
+    mode: "{{ item['mode'] | default('0755') }}"
