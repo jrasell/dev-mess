@@ -1,0 +1,26 @@
+data_dir   = "/var/lib/nomad"
+bind_addr  = "{{ ansible_facts["default_ipv4"]["address"] }}"
+
+log_level            = "DEBUG"
+log_include_location = true
+log_file             = "/var/log/nomad.log"
+enable_debug         = true
+
+telemetry {
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+  prometheus_metrics         = true
+}
+
+client {
+  enabled           = true
+  network_interface = "{{ ansible_facts["default_ipv4"]["alias"] }}"
+
+  server_join {
+    retry_join = [
+      {% for host in groups['nomad_server'] %}
+      "{{ hostvars[host]['ansible_facts']["default_ipv4"]["address"] }}",
+      {% endfor %}
+    ]
+  }
+}
