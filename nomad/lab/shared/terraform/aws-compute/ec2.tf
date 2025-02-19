@@ -24,7 +24,7 @@ resource "aws_instance" "instance" {
   }
 
   tags = {
-    Name  = "${var.component_name}_${count.index}"
+    Name  = "${var.component_name}-${count.index}"
     Owner = var.stack_owner
     Stack = var.stack_name
   }
