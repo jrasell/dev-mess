@@ -1,0 +1,3 @@
+tls_path: "{{ playbook_dir }}/.tls"
+tls_ca_generate: true
+tls_self_signed_generate: [ ]

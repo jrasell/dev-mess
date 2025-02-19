@@ -1,0 +1,50 @@
+- block:
+  - name: "ensure_tls_dir"
+    file:
+      path: "{{ tls_path }}"
+      state: directory
+
+  - name: "check_existing_ca_certificate"
+    stat:
+      path:  "{{ tls_path }}/ca-certificate.key"
+    register: certificate_exists
+
+  - name: "create_ca_private_key"
+    community.crypto.openssl_privatekey:
+      path: "{{ tls_path }}/ca-certificate.key"
+    when: not certificate_exists.stat.exists
+
+  - name: "check_existing_ca_pem"
+    stat:
+      path: "{{ tls_path }}/ca-certificate.pem"
+    register: pem_exists
+
+  - name: "create_ca_csr"
+    community.crypto.openssl_csr_pipe:
+      privatekey_path: "{{ tls_path }}/ca-certificate.key"
+      common_name: "James Rasell"
+      use_common_name_for_san: false
+      basic_constraints:
+        - 'CA:TRUE'
+      basic_constraints_critical: true
+      key_usage:
+        - keyCertSign
+      key_usage_critical: true
+    register: ca_csr
+    when: not pem_exists.stat.exists
+
+  - name: "create_ca"
+    community.crypto.x509_certificate:
+      path: "{{ tls_path }}/ca-certificate.pem"
+      csr_content: "{{ ca_csr.csr }}"
+      privatekey_path: "{{ tls_path }}/ca-certificate.key"
+      provider: selfsigned
+    when: not pem_exists.stat.exists
+
+  delegate_to: 127.0.0.1
+  when: tls_ca_generate is true
+  run_once: true
+
+- name: "generate_self_signed_certificate"
+  include_tasks: "cert_generate.yaml"
+  with_items: "{{ tls_self_signed_generate }}"

@@ -1,0 +1,45 @@
+- block:
+  - name: "create_private_key"
+    community.crypto.openssl_privatekey:
+      path: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.key"
+
+  - name: "create_certificate_csr"
+    community.crypto.openssl_csr_pipe:
+      privatekey_path: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.key"
+      subject_alt_name:
+        - "IP:127.0.0.1"
+        - "IP:{{ item['ip'] }}"
+        - "IP:{{ ansible_host }}"
+        - "DNS:localhost"
+        - "DNS:{{ item['dns'] }}"
+    register: csr
+
+  - name: "check_existing_certificate"
+    stat:
+      path: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.pem"
+    register: certificate_exists
+
+  - name: "read_existing_certificate"
+    slurp:
+      src: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.pem"
+    when: certificate_exists.stat.exists
+    register: certificate
+
+  - name: "sign_certificate"
+    community.crypto.x509_certificate_pipe:
+      content: "{{ (certificate.content | b64decode) if certificate_exists.stat.exists else omit }}"
+      csr_content: "{{ csr.csr }}"
+      provider: ownca
+      ownca_path: "{{ tls_path }}/ca-certificate.pem"
+      ownca_privatekey_path: "{{ tls_path }}/ca-certificate.key"
+      ownca_not_after: +365d
+      ownca_not_before: "-1d"
+    register: certificate
+
+  - name: "write_signed_certificate"
+    copy:
+      dest: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.pem"
+      content: "{{ certificate.certificate }}"
+    when: certificate is changed
+
+  delegate_to: 127.0.0.1
