@@ -29,3 +29,22 @@ server {
 acl {
   enabled = true
 }
+
+tls {
+  http = true
+  rpc  = true
+
+  ca_file   = "/etc/nomad.d/.tls/ca.crt"
+  cert_file = "/etc/nomad.d/.tls/nomad.crt"
+  key_file  = "/etc/nomad.d/.tls/nomad.key"
+}
+
+ui {
+  enabled =  true
+
+  label {
+    text             = "local lcy1"
+    background_color = "yellow"
+    text_color       = "#000000"
+  }
+}

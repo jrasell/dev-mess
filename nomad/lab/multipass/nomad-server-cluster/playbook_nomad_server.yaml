@@ -17,6 +17,12 @@
       golang_version: "1.23.6"
       golang_redis_sha256sum: "561c780e8f4a8955d32bf72e46af0b5ee5e0debe1e4633df9a03781878219202"
 
+    - role: tls
+      tls_self_signed_generate:
+        - agent-name: "{{ inventory_hostname }}"
+          ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+          dns: "server.lcy1.nomad"
+
     - role: helper
       helper_apt_packages:
         - "build-essential"
@@ -28,7 +34,20 @@
       helper_file_copy_local:
         - src: "./files/nomad.service"
           dst: "/etc/systemd/system/nomad.service"
+        - src: "./.tls/ca-certificate.pem"
+          dst: "/etc/nomad.d/.tls/ca.crt"
+        - src: "./.tls/{{ inventory_hostname }}-certificate.pem"
+          dst: "/etc/nomad.d/.tls/nomad.crt"
+        - src: "./.tls/{{ inventory_hostname }}-certificate.key"
+          dst: "/etc/nomad.d/.tls/nomad.key"
       helper_file_write_content_local:
         - content: "b6e63b6a-527c-14db-9474-063cb1dcc026\n"
           dst: "{{ playbook_dir }}/generated_nomad_root_bootstrap_token"
+        - content: |
+            NOMAD_TOKEN=b6e63b6a-527c-14db-9474-063cb1dcc026
+            NOMAD_ADDR="https://{{ hostvars['nomad-server-0']['ansible_default_ipv4']['address'] }}:4646"
+            NOMAD_CAPATH=./.tls/ca-certificate.pem
+            NOMAD_CLIENT_CERT=./.tls/nomad-server-0-certificate.pem
+            NOMAD_CLIENT_KEY=./.tls/nomad-server-0-certificate.key
+          dst: "{{ playbook_dir }}/.envrc"
       helper_systemd_start_service_name: "nomad"
