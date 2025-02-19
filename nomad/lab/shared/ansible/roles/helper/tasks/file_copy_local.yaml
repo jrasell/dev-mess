@@ -1,0 +1,17 @@
+- name: "file_copy_local_ensure_dir"
+  become: true
+  file:
+    path: "{{ item.dst | dirname }}"
+    state: directory
+    owner: "{{ item['owner'] | default('root') }}"
+    group: "{{ item['group'] | default('root') }}"
+    mode: "{{ item['mode'] | default('0755') }}"
+
+- name: "file_copy_local"
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item['src'] }}"
+    dest: "{{ item['dst'] }}"
+    owner: "{{ item['owner'] | default('root') }}"
+    group: "{{ item['group'] | default('root') }}"
+    mode: "{{ item['mode'] | default('0755') }}"
