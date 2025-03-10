@@ -1,5 +1,5 @@
-data_dir   = "/var/lib/nomad"
-bind_addr  = "{{ hostvars[ "nomad_server_0" ][ "ansible_default_ipv4" ][ "address" ] }}"
+data_dir  = "/var/lib/nomad"
+bind_addr = "{{ hostvars["nomad_server-0"]["ansible_default_ipv4"]["address"] }}"
 
 log_level            = "DEBUG"
 log_include_location = true

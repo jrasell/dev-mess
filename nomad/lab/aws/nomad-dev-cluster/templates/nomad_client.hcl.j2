@@ -1,5 +1,5 @@
-data_dir   = "/var/lib/nomad"
-bind_addr  = "{{ hostvars[ "nomad_client_0" ][ "ansible_default_ipv4" ][ "address" ] }}"
+data_dir  = "/var/lib/nomad"
+bind_addr = "{{ hostvars["nomad_client-0"]["ansible_default_ipv4"]["address"] }}"
 
 log_level            = "DEBUG"
 log_include_location = true
@@ -14,10 +14,10 @@ telemetry {
 
 client {
   enabled           = true
-  network_interface = "{{ hostvars[ "nomad_client_0" ][ "ansible_default_ipv4" ][ "alias" ] }}"
+  network_interface = "{{ hostvars["nomad_client-0"]["ansible_default_ipv4"]["alias"] }}"
 
   server_join {
-    retry_join = ["{{ hostvars[ "nomad_server_0" ][ "ansible_default_ipv4" ][ "address" ] }}"]
+    retry_join = ["{{ hostvars["nomad_server-0"]["ansible_default_ipv4"]["address"] }}"]
   }
 }
 

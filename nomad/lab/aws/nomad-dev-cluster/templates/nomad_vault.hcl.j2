@@ -1,6 +1,6 @@
 vault {
   enabled               = true
-  address               = "http://{{ hostvars[ "nomad_server_0" ][ "ansible_default_ipv4" ][ "address" ] }}:8200"
+  address               = "http://{{ hostvars["nomad_server-0"]["ansible_default_ipv4"]["address"] }}:8200"
   jwt_auth_backend_path = "jwt-nomad/"
 
   default_identity {
