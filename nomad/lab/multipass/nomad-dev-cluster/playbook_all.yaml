@@ -1,2 +1,5 @@
+- hosts: localhost
+  connection: local
+
 - import_playbook: playbook_nomad_server.yaml
 - import_playbook: playbook_nomad_client.yaml

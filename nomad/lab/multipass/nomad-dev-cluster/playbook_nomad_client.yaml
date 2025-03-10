@@ -1,4 +1,11 @@
 - hosts: nomad_client
+
+  # Variables that need to be changed, depending on who is running the playbook.
+  vars:
+    github_email: "2980562+jrasell@users.noreply.github.com"
+    ssh_key_private_filename: "id_rsa"
+    ssh_key_public_filename: "id_rsa.pub"
+
   roles:
     - role: common
       common_hostname: "{{ inventory_hostname }}"
@@ -9,7 +16,7 @@
       ]
 
     - role: gantsign.golang
-      golang_gopath: "/home/{{ ansible_user_id }}/go"
+      golang_gopath: "{{ ansible_user_dir }}/go"
       golang_version: "1.23.6"
       golang_redis_sha256sum: "561c780e8f4a8955d32bf72e46af0b5ee5e0debe1e4633df9a03781878219202"
 
@@ -30,3 +37,27 @@
           dst: "/home/{{ ansible_user_id }}/nomad-client.hcl"
           owner: "{{ ansible_user_id }}"
           group: "{{ ansible_user_id }}"
+      helper_file_copy_local:
+        - src: "{{ hostvars['localhost']['ansible_user_dir'] }}/.ssh/{{ ssh_key_private_filename }}"
+          dst: "{{ ansible_user_dir }}/.ssh/id_rsa"
+          owner: "{{ ansible_user_id }}"
+          group: "{{ ansible_user_id }}"
+          mode: "600"
+        - src: "{{ hostvars['localhost']['ansible_user_dir'] }}/.ssh/{{ ssh_key_public_filename }}"
+          dst: "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
+          owner: "{{ ansible_user_id }}"
+          group: "{{ ansible_user_id }}"
+          mode: "600"
+      helper_file_write_content:
+        - content: |
+            [user]
+              email = {{ github_email }}
+            [url "ssh://git@github.com/"]
+              insteadOf = https://github.com/
+          dst: "{{ ansible_user_dir }}//.gitconfig"
+          owner: "{{ ansible_user_id }}"
+          group: "{{ ansible_user_id }}"
+
+  tasks:
+    - name: "add_github_ssh_keys"
+      ansible.builtin.shell: "ssh-keyscan github.com >> {{ ansible_user_dir }}/.ssh/known_hosts"
