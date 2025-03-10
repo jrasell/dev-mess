@@ -14,8 +14,8 @@
 
     - role: gantsign.golang
       golang_gopath: "/home/{{ ansible_user_id }}/go"
-      golang_version: "1.23.6"
-      golang_redis_sha256sum: "9379441ea310de000f33a4dc767bd966e72ab2826270e038e78b2c53c2e7802d"
+      golang_version: "1.24.1"
+      golang_redis_sha256sum: "cb2396bae64183cdccf81a9a6df0aea3bce9511fc21469fb89a0c00470088073"
 
     - role: cni
 
