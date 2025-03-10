@@ -1,3 +1,8 @@
+- name: "file_copy_local_stat_dir"
+  stat:
+    path: "{{ item.dst | dirname }}"
+  register: dir_stat
+
 - name: "file_copy_local_ensure_dir"
   become: true
   file:
@@ -6,6 +11,7 @@
     owner: "{{ item['owner'] | default('root') }}"
     group: "{{ item['group'] | default('root') }}"
     mode: "{{ item['mode'] | default('0755') }}"
+  when: not dir_stat.stat.exists
 
 - name: "file_copy_local"
   become: true
