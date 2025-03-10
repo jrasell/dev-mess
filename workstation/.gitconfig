@@ -1,0 +1,12 @@
+[user]
+        signingkey = AA7D460F5C8377AA
+        email      = 2980562+jrasell@users.noreply.github.com
+[commit]
+        gpgsign = true
+[url "ssh://git@github.com/"]
+        insteadOf = https://github.com/
+[core]
+        excludesFile = ~/.gitignore
+        pager        = less -R
+[init]
+        defaultBranch = main
