@@ -1,5 +1,6 @@
 hashicorp_release_product_name: ""
 hashicorp_release_product_version: ""
+hashicorp_release_product_checksum: ""
 hashicorp_release_product_install_dir: "/usr/local/bin"
 
 hashicorp_release_zip_url: "https://releases.hashicorp.com/{{ hashicorp_release_product_name }}/{{ hashicorp_release_product_version }}/{{ hashicorp_release_product_name }}_{{ hashicorp_release_product_version }}_linux_{{ hashicorp_release_architecture }}.zip"

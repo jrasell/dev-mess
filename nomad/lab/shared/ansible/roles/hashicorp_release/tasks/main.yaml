@@ -1,6 +1,7 @@
 - name: "download_{{ hashicorp_release_product_name }}"
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ hashicorp_release_zip_url }}"
+    checksum: "{{ hashicorp_release_product_checksum }}"
     dest: "/tmp/{{ hashicorp_release_product_name }}.zip"
     timeout: "60"
     mode: '600'
