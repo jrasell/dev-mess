@@ -10,7 +10,8 @@
 
     - role: hashicorp_release
       hashicorp_release_product_name: "nomad"
-      hashicorp_release_product_version: "1.9.6"
+      hashicorp_release_product_version: "1.9.7"
+      hashicorp_release_product_checksum: "sha256:30984d4d51a484995d9cdb5089a5a209b3332e11ab08caf179a32b9ba2e4227e"
 
     - role: gantsign.golang
       golang_gopath: "/home/{{ ansible_user_id }}/go"
