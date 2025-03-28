@@ -23,6 +23,11 @@ resource "aws_instance" "instance" {
     }
   }
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   tags = {
     Name  = "${var.component_name}-${count.index}"
     Owner = var.stack_owner
