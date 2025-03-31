@@ -57,6 +57,8 @@
           dst: "{{ ansible_user_dir }}//.gitconfig"
           owner: "{{ ansible_user_id }}"
           group: "{{ ansible_user_id }}"
+        - content: "bridge"
+          dst: "/etc/modules-load.d/nomad.conf"
 
   tasks:
     - name: "add_github_ssh_keys"
