@@ -45,10 +45,10 @@
         - content: "b6e63b6a-527c-14db-9474-063cb1dcc026\n"
           dst: "{{ playbook_dir }}/generated_nomad_root_bootstrap_token"
         - content: |
-            NOMAD_TOKEN=b6e63b6a-527c-14db-9474-063cb1dcc026
-            NOMAD_ADDR="https://{{ hostvars['nomad-server-0']['ansible_default_ipv4']['address'] }}:4646"
-            NOMAD_CAPATH=./.tls/ca-certificate.pem
-            NOMAD_CLIENT_CERT=./.tls/nomad-server-0-certificate.pem
-            NOMAD_CLIENT_KEY=./.tls/nomad-server-0-certificate.key
+            export NOMAD_TOKEN=b6e63b6a-527c-14db-9474-063cb1dcc026
+            export NOMAD_ADDR="https://{{ hostvars['nomad-server-0']['ansible_default_ipv4']['address'] }}:4646"
+            export NOMAD_CAPATH=./.tls/ca-certificate.pem
+            export NOMAD_CLIENT_CERT=./.tls/nomad-server-0-certificate.pem
+            export NOMAD_CLIENT_KEY=./.tls/nomad-server-0-certificate.key
           dst: "{{ playbook_dir }}/.envrc"
       helper_systemd_start_service_name: "nomad"
