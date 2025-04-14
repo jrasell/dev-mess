@@ -1,3 +1,9 @@
+variable "instance_image" {
+  description = "The Multipass image to use."
+  type        = string
+  default     = "24.04"
+}
+
 variable "instance_name_prefix" {
   description = "The name prefix to use when filtering Multipass instances."
   type        = string

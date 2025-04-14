@@ -13,7 +13,7 @@ resource "multipass_instance" "instance" {
   cpus           = var.instance_cpus
   memory         = var.instance_memory
   disk           = var.instance_disk
-  image          = "lts"
+  image          = var.instance_image
   cloudinit_file = "${path.module}/generated_cloudinit.yaml"
 }
 
