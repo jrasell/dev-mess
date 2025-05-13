@@ -1,7 +1,6 @@
 locals {
   stack_region  = "eu-west-2"
   stack_name    = "workstation"
-  ec2_ami_id    = "ami-0474244c88b835731"
   ec2_user_data = <<EOH
 #cloud-config
 ---
@@ -28,6 +27,10 @@ module "keys" {
   path = "${path.root}/keys"
 }
 
+module "ami" {
+  source = "../../shared/terraform/aws-ami"
+}
+
 module "network" {
   source     = "../../shared/terraform/aws-network"
   stack_name = local.stack_name
@@ -38,7 +41,7 @@ module "workstation" {
 
   ansible_group_name = "workstation"
   component_name     = "workstation"
-  ami_id             = local.ec2_ami_id
+  ami_id             = module.ami.ami_id
   security_group_ids = [module.network.security_group_id]
   ssh_key_name       = module.keys.key_name
   stack_name         = local.stack_name

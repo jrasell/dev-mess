@@ -1,5 +1,4 @@
 locals {
-  ec2_ami_id    = "ami-0474244c88b835731"
   stack_region  = "eu-west-2"
   stack_name    = "nomad-cluster"
   stack_owner   = "jrasell"
@@ -29,6 +28,10 @@ module "keys" {
   path = "${path.root}/keys"
 }
 
+module "ami" {
+  source = "../../shared/terraform/aws-ami"
+}
+
 module "network" {
   source     = "../../shared/terraform/aws-network"
   stack_name = local.stack_name
@@ -37,7 +40,7 @@ module "network" {
 module "nomad_server" {
   source = "../../shared/terraform/aws-compute"
 
-  ami_id             = local.ec2_ami_id
+  ami_id             = module.ami.ami_id
   ansible_group_name = "nomad_server"
   component_name     = "nomad-server"
   instance_count     = 3
@@ -52,7 +55,7 @@ module "nomad_server" {
 module "nomad_client" {
   source = "../../shared/terraform/aws-compute"
 
-  ami_id             = local.ec2_ami_id
+  ami_id             = module.ami.ami_id
   ansible_group_name = "nomad_client"
   component_name     = "nomad-client"
   instance_count     = 2
