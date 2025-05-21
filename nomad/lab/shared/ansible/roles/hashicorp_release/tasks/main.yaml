@@ -1,24 +1,37 @@
-- name: "download_{{ hashicorp_release_product_name }}"
-  ansible.builtin.get_url:
-    url: "{{ hashicorp_release_zip_url }}"
-    checksum: "{{ hashicorp_release_product_checksum }}"
-    dest: "/tmp/{{ hashicorp_release_product_name }}.zip"
-    timeout: "60"
-    mode: '600'
-  become: false
+- name: "{{ hashicorp_release_product_name }}_binary_stat"
+  ansible.builtin.stat:
+    path: "{{ hashicorp_release_product_install_dir }}/{{ hashicorp_release_product_name }}"
+  register: binary_stat
 
-- name: "unzip_{{ hashicorp_release_product_name }}"
-  unarchive:
-    remote_src: "yes"
-    src: "/tmp/{{ hashicorp_release_product_name }}.zip"
-    dest: "{{ hashicorp_release_product_install_dir }}"
-    creates: "{{ hashicorp_release_product_install_dir }}/{{ hashicorp_release_product_name }}"
-    owner: "root"
-    group: "root"
-    mode: "0755"
-  become: true
+- name: "{{ hashicorp_release_product_name }}_installed_version_check"
+  command: "{{ hashicorp_release_product_install_dir }}/{{ hashicorp_release_product_name }} version"
+  register: binary_installed_version
+  when: binary_stat.stat.exists
 
-- name: "remove_{{ hashicorp_release_product_name }}_zip"
-  ansible.builtin.file:
-    path: "/tmp/{{ hashicorp_release_product_name }}.zip"
-    state: "absent"
+- block:
+  - name: "download_{{ hashicorp_release_product_name }}"
+    ansible.builtin.get_url:
+      url: "{{ hashicorp_release_zip_url }}"
+      checksum: "{{ hashicorp_release_product_checksum }}"
+      dest: "/tmp/{{ hashicorp_release_product_name }}.zip"
+      timeout: "60"
+      mode: '600'
+    become: false
+
+  - name: "unzip_{{ hashicorp_release_product_name }}"
+    unarchive:
+      remote_src: "yes"
+      src: "/tmp/{{ hashicorp_release_product_name }}.zip"
+      dest: "{{ hashicorp_release_product_install_dir }}"
+      owner: "root"
+      group: "root"
+      mode: "0755"
+    become: true
+
+  - name: "remove_{{ hashicorp_release_product_name }}_zip"
+    ansible.builtin.file:
+      path: "/tmp/{{ hashicorp_release_product_name }}.zip"
+      state: "absent"
+
+  when:
+    - not binary_stat.stat.exists or binary_installed_version.stdout is defined and hashicorp_release_product_version|string not in binary_installed_version.stdout
