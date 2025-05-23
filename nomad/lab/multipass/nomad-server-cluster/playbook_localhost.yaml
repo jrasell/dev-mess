@@ -1,0 +1,23 @@
+# Delegate gathering of facts, so we can run this against the localhost only but
+# collect the relevant data from the Nomad servers to populate our environment.
+- hosts: all
+  tasks:
+    - name: "delegate_fact_gathering"
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['nomad_server'] }}"
+
+- hosts: localhost
+  roles:
+    - role: helper
+      helper_file_write_content_local:
+        - content: "b6e63b6a-527c-14db-9474-063cb1dcc026\n"
+          dst: "{{ playbook_dir }}/generated_nomad_root_bootstrap_token"
+        - content: |
+            export NOMAD_TOKEN=b6e63b6a-527c-14db-9474-063cb1dcc026
+            export NOMAD_ADDR="https://{{ hostvars['nomad-server-0']['ansible_facts']['default_ipv4']['address'] }}:4646"
+            export NOMAD_CAPATH=./.tls/ca-certificate.pem
+            export NOMAD_CLIENT_CERT=./.tls/nomad-server-0-certificate.pem
+            export NOMAD_CLIENT_KEY=./.tls/nomad-server-0-certificate.key
+          dst: "{{ playbook_dir }}/.envrc"

@@ -16,6 +16,14 @@ module "ansible_provision" {
   ansible_playbook_path  = abspath("./playbook_nomad_server.yaml")
 }
 
+module "ansible_provision_localhost" {
+  source     = "../../shared/terraform/ansible-provision"
+  depends_on = [module.ansible_provision]
+
+  ansible_inventory_path = abspath("./inventory.yaml")
+  ansible_playbook_path  = abspath("./playbook_localhost.yaml")
+}
+
 output "details" {
   value = <<EOH
 SSH commands:
