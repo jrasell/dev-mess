@@ -1,4 +1,4 @@
-data_dir   = "/var/lib/nomad"
+data_dir   = "{{ nomad_data_dir }}"
 bind_addr  = "{{ ansible_facts["default_ipv4"]["address"] }}"
 region     = "lcy1"
 
@@ -30,23 +30,11 @@ acl {
   enabled = true
 }
 
-tls {
-  http = true
-  rpc  = true
-
-  ca_file   = "/etc/nomad.d/.tls/ca.crt"
-  cert_file = "/etc/nomad.d/.tls/nomad.crt"
-  key_file  = "/etc/nomad.d/.tls/nomad.key"
-
-  verify_server_hostname = true
-  verify_https_client    = false
-}
-
 ui {
   enabled =  true
 
   label {
-    text             = "lcy1"
+    text             = "local lcy1"
     background_color = "purple"
     text_color       = "#FFFFFF"
   }

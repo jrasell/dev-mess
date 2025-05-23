@@ -1,17 +1,24 @@
+# Delegate gathering of facts, so we can run this playbook with a limit when
+# performing updates that require control of the Nomad process restart.
+- hosts: all
+  tasks:
+    - name: "delegate_fact_gathering"
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['nomad_client'] }}"
+
 - hosts: nomad_client
   roles:
     - role: common
       common_hostname: "{{ inventory_hostname }}"
-      common_apt_packages: [
-        "jq",
-        "net-tools",
-        "unzip",
-      ]
-
-    - role: hashicorp_release
-      hashicorp_release_product_name: "nomad"
-      hashicorp_release_product_version: "1.10.0"
-      hashicorp_release_product_checksum: "sha256:b542daaeaf9ddd9f109bbf1a4ec1c05d6b6f2d3645c0ebe21786dec8b447e7d6"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
 
     - role: gantsign.golang
       golang_gopath: "/home/{{ ansible_user_id }}/go"
@@ -32,23 +39,14 @@
           dns: "client.lcy1.nomad"
 
     - role: helper
-      helper_apt_packages:
-        - "build-essential"
-        - "git"
-        - "make"
       helper_file_write_content:
         - content: "bridge"
           dst: "/etc/modules-load.d/nomad.conf"
-      helper_file_write_template:
-        - src: "./templates/nomad_client.hcl.j2"
-          dst: "/etc/nomad.d/client.hcl"
-      helper_file_copy_local:
-        - src: "./files/nomad.service"
-          dst: "/etc/systemd/system/nomad.service"
-        - src: "./.tls/ca-certificate.pem"
-          dst: "/etc/nomad.d/.tls/ca.crt"
-        - src: "./.tls/{{ inventory_hostname }}-certificate.pem"
-          dst: "/etc/nomad.d/.tls/nomad.crt"
-        - src: "./.tls/{{ inventory_hostname }}-certificate.key"
-          dst: "/etc/nomad.d/.tls/nomad.key"
-      helper_systemd_start_service_name: "nomad"
+
+    - role: nomad
+      nomad_config_template: "./templates/nomad_client.hcl.j2"
+      nomad_region: "lcy1"
+      nomad_tls_enabled: true
+      nomad_tls_ca_cert: "./.tls/ca-certificate.pem"
+      nomad_tls_cert: "./.tls/{{ inventory_hostname }}-certificate.pem"
+      nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-certificate.key"
