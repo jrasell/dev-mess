@@ -1,9 +1,14 @@
 # Dev Mess
-This repository contains an assortment of tests, benchmarks, and reproductions I
-use. It is a little empty at the moment, but will continue to be populated over
-time.
+My little slice of development chaos including infrastructure tooling and
+workstation configurations I use.
 
 ### Table of Contents
 
-* [nomad](./nomad): material which is specific to operating and developing Nomad
-and its ecosystem of tools.
+* [lab](./lab): Shared configuration objects and implementations which can be
+  used for testing, debugging, and running applications; notably Nomad. A number
+  of styles can be run depending on requirements. AWS provides the cloud
+  deployment option, Multipass for local VMs, and local for running on the base
+  host.
+
+* [workstation](./workstation): Configuration options I use for local
+  workstations which usually consist of macOS and Linux machines.
