@@ -3,7 +3,8 @@
     name: hashicorp_release
   vars:
     hashicorp_release_product_name: "nomad"
-    hashicorp_release_product_version: "{{ nomad_version }}"
+    hashicorp_release_product_version: "{{ nomad_binary_version }}"
+    hashicorp_release_product_checksum: "{{ nomad_binary_checksum }}"
 
 - name: "create_service_file"
   become: true
@@ -15,82 +16,65 @@
     mode: "0755"
   notify:
     - "reload_systemd"
+    - "enable_nomad"
 
 - name: "create_config_dir"
   become: true
   ansible.builtin.file:
     path: "{{ nomad_config_dir }}"
     state: directory
-    mode: "0755"
+    mode: "0700"
+    owner: "{{ nomad_user }}"
+    group: "{{ nomad_group }}"
 
 - name: "create_data_dir"
   become: true
   ansible.builtin.file:
     path: "{{ nomad_data_dir }}"
     state: directory
-    mode: "0755"
+    mode: "0700"
 
-- name: "create_log_file"
-  become: true
-  ansible.builtin.file:
-    state: touch
-    path: "{{ nomad_log_file }}"
-    owner: "{{ nomad_user }}"
-    group: "{{ nomad_group }}"
-    mode: "0750"
-
-- name: "create_base_config_file"
+- name: "write_config_template"
   become: true
   ansible.builtin.template:
-    src: "base.hcl.j2"
+    src: "{{ nomad_config_template }}"
     dest: "{{ nomad_config_dir }}/base.hcl"
     owner: "{{ nomad_user }}"
     group: "{{ nomad_group }}"
-    mode: "0655"
-  notify:
-    - "restart_nomad"
+    mode: "0600"
+  notify: "restart_nomad"
 
-- name: "create_server_config_file"
-  become: true
-  ansible.builtin.template:
-    src: "server.hcl.j2"
-    dest: "{{ nomad_config_dir }}/server.hcl"
-    owner: "{{ nomad_user }}"
-    group: "{{ nomad_group }}"
-    mode: "0655"
-  when: nomad_server_enabled is true
-  notify:
-    - "restart_nomad"
-
-- name: "create_client_config_file"
-  become: true
-  ansible.builtin.template:
-    src: "client.hcl.j2"
-    dest: "{{ nomad_config_dir }}/client.hcl"
-    owner: "{{ nomad_user }}"
-    group: "{{ nomad_group }}"
-    mode: "0655"
-  when: nomad_client_enabled is true
-  notify:
-    - "restart_nomad"
-
-- name: "create_additional_config_files"
-  become: true
-  ansible.builtin.template:
-    src: "{{ item }}"
-    dest: "{{ nomad_config_dir }}/{{ item.split('/')[-1] }}"
-    owner: "{{ nomad_user }}"
-    group: "{{ nomad_group }}"
-    mode: "0655"
-  loop: "{{ nomad_extra_config_files }}"
-  notify:
-    - "restart_nomad"
-
-- import_tasks: tls.yaml
-- import_tasks: acl.yaml
-
-- import_tasks: cli.yaml
-  when: nomad_cli_profile_enabled is true
-
-- import_tasks: envrc.yaml
-  when: nomad_cli_direnv_path is defined
+- block:
+  - name: "create_tls_directory"
+    become: true
+    ansible.builtin.file:
+      path: "{{ nomad_config_dir }}/.tls"
+      owner: "{{ nomad_user }}"
+      group: "{{ nomad_group }}"
+      state: "directory"
+      mode: "0700"
+  - name: "write_tls_files"
+    become: true
+    ansible.builtin.copy:
+      dest: "{{ item.dest }}"
+      src: "{{ item.src }}"
+      owner: "{{ nomad_user }}"
+      group: "{{ nomad_group }}"
+      mode: "0600"
+    loop:
+      - dest: "{{ nomad_config_dir }}/.tls/ca.pem"
+        src: "{{ nomad_tls_ca_cert }}"
+      - dest: "{{ nomad_config_dir }}/.tls/cert.pem"
+        src: "{{ nomad_tls_cert }}"
+      - dest: "{{ nomad_config_dir }}/.tls/cert-key.pem"
+        src: "{{ nomad_tls_cert_key }}"
+  - name: "create_tls_config_file"
+    become: true
+    ansible.builtin.template:
+      src: "tls.hcl.j2"
+      dest: "{{ nomad_config_dir }}/tls.hcl"
+      owner: "{{ nomad_user }}"
+      group: "{{ nomad_group }}"
+      mode: "0600"
+  notify: "restart_nomad"
+  when: nomad_tls_enabled is true

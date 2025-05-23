@@ -4,7 +4,7 @@ tls {
   verify_server_hostname = true
   verify_https_client    = false
 
-  ca_file   = "{{ nomad_config_dir }}/tls/ca.pem"
-  cert_file = "{{ nomad_config_dir }}/tls/cert.pem"
-  key_file  = "{{ nomad_config_dir }}/tls/cert-key.pem"
+  ca_file   = "{{ nomad_config_dir }}/.tls/ca.pem"
+  cert_file = "{{ nomad_config_dir }}/.tls/cert.pem"
+  key_file  = "{{ nomad_config_dir }}/.tls/cert-key.pem"
 }

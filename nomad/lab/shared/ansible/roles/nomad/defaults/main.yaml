@@ -1,27 +1,14 @@
 nomad_user: "root"
 nomad_group: "root"
-nomad_version: "1.9.4"
+
+nomad_binary_version: "1.10.1"
+nomad_binary_checksum: "sha256:8d6dd97e43a448ab8369e8cb91c33db98ee45f198400776a1ef5877331ddb0bb"
 
 nomad_config_dir: "/etc/nomad.d"
+nomad_config_template: ""
 nomad_data_dir: "/opt/nomad/data"
-nomad_region: "global"
-nomad_name: "{{ ansible_nodename | split('-') | last }}"
-nomad_datacenter: "dc1"
-nomad_bind_addr: "0.0.0.0"
 
-nomad_log_level: "DEBUG"
-nomad_log_json: true
-nomad_log_include_location: true
-nomad_log_file: "/var/log/nomad.log"
-nomad_enable_debug: true
-nomad_extra_config_files: []
-
-nomad_server_enabled: false
-nomad_server_bootstrap_expect: 1
-nomad_server_server_join: []
-
-nomad_client_enabled: false
-nomad_client_node_class: ""
-nomad_client_node_pool: ""
-nomad_client_network_interface: ""
-nomad_client_server_join: []
+nomad_tls_enabled: false
+nomad_tls_ca_cert: ""
+nomad_tls_cert: ""
+nomad_tls_cert_key: ""

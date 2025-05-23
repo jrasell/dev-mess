@@ -8,8 +8,9 @@ After=network-online.target
 User={{ nomad_user }}
 Group={{ nomad_group }}
 
+Type=notify
 ExecReload=/bin/kill -HUP $MAINPID
-ExecStart=/usr/local/bin/nomad agent -config /etc/nomad.d
+ExecStart=/usr/local/bin/nomad agent -config /etc/nomad.d/
 KillMode=process
 KillSignal=SIGINT
 LimitNOFILE=65536
@@ -18,6 +19,9 @@ Restart=on-failure
 RestartSec=2
 
 TasksMax=infinity
+
+# Nomad Server agents should never be force killed, so here we disable OOM
+# (out of memory) killing for this unit.
 OOMScoreAdjust=-1000
 
 [Install]
