@@ -1,6 +1,0 @@
-dependencies:
-  - role: "hashicorp_release"
-    vars:
-      hashicorp_release_product_name: "nomad"
-      hashicorp_release_product_version: "{{ nomad_binary_version }}"
-      hashicorp_release_product_checksum: "{{ nomad_binary_checksum }}"

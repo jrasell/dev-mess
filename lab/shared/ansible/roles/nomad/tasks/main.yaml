@@ -1,3 +1,10 @@
+- name: "installed_version_check"
+  command: "/usr/local/bin/nomad version"
+  register: binary_installed_version
+  ignore_errors: true
+  changed_when: nomad_binary_version|string not in binary_installed_version.stdout
+  notify: "restart_nomad"
+
 - name: "install_release_binary"
   ansible.builtin.include_role:
     name: hashicorp_release
@@ -43,6 +50,34 @@
     group: "{{ nomad_group }}"
     mode: "0600"
   notify: "restart_nomad"
+
+- block:
+  - name: "create_license_directory"
+    become: true
+    ansible.builtin.file:
+      path: "{{ nomad_config_dir }}/.license"
+      owner: "{{ nomad_user }}"
+      group: "{{ nomad_group }}"
+      state: "directory"
+      mode: "0700"
+  - name: "write_license_file"
+    become: true
+    ansible.builtin.copy:
+      dest: "{{ nomad_config_dir }}/.license/license.hclic"
+      content: "{{ nomad_license }}"
+      owner: "{{ nomad_user }}"
+      group: "{{ nomad_group }}"
+      mode: "0600"
+  - name: "create_license_config_file"
+    become: true
+    ansible.builtin.template:
+      src: "license.hcl.j2"
+      dest: "{{ nomad_config_dir }}/license.hcl"
+      owner: "{{ nomad_user }}"
+      group: "{{ nomad_group }}"
+      mode: "0600"
+  notify: "restart_nomad"
+  when: nomad_license != ""
 
 - block:
   - name: "create_tls_directory"
