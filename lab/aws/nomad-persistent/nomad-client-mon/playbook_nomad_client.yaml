@@ -1,0 +1,41 @@
+- hosts: 127.0.0.1
+  connection: local
+  become: true
+  roles:
+    - role: common
+      common_hostname: "{{ ansible_facts['nodename'] }}"
+      common_apt_packages:
+        - "git"
+        - "jq"
+        - "net-tools"
+        - "unzip"
+
+    - role: cni
+
+    - role: "geerlingguy.docker"
+      become: true
+      docker_users:
+        - "{{ ansible_user_id }}"
+
+    - role: tls
+      tls_path: "../.tls"
+      tls_ca_generate: false
+      tls_self_signed_generate:
+        - agent-name: "{{ ansible_facts['nodename'] }}"
+          ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+          dns: "client.eu1.nomad"
+
+    - role: helper
+      helper_file_write_content:
+        - content: "bridge"
+          dst: "/etc/modules-load.d/nomad.conf"
+
+    - role: nomad
+      nomad_config_template: "./templates/nomad_client.hcl.j2"
+      nomad_region: "eu1"
+      nomad_binary_version: "1.10.1"
+      nomad_binary_checksum: "sha256:cc1cffd95d81943d0a7f8abe7dc2b025a644512d1af253456267caebc1f38065"
+      nomad_tls_enabled: true
+      nomad_tls_ca_cert: "../.tls/ca.pem"
+      nomad_tls_cert: "../.tls/{{ ansible_facts['nodename'] }}-certificate.pem"
+      nomad_tls_cert_key: "../.tls/{{ ansible_facts['nodename'] }}-certificate.key"

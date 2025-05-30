@@ -1,0 +1,33 @@
+data_dir   = "{{ nomad_data_dir }}"
+bind_addr  = "{{ ansible_facts["default_ipv4"]["address"] }}"
+region     = "{{ nomad_region }}"
+
+log_level            = "DEBUG"
+log_include_location = true
+log_file             = "/var/log/nomad.log"
+enable_debug         = true
+
+telemetry {
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+  prometheus_metrics         = true
+}
+
+client {
+  enabled   = true
+  node_pool = "monitoring"
+
+  server_join {
+    retry_join = ["provider=aws tag_key=component tag_value=nomad-server"]
+  }
+}
+
+acl {
+  enabled = true
+}
+
+plugin "raw_exec" {
+  config {
+    enabled = true
+  }
+}

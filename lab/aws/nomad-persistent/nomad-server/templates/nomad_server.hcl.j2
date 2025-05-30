@@ -1,0 +1,37 @@
+data_dir   = "{{ nomad_data_dir }}"
+bind_addr  = "{{ ansible_facts["default_ipv4"]["address"] }}"
+region     = "{{ nomad_region }}"
+
+log_level            = "DEBUG"
+log_include_location = true
+log_file             = "/var/log/nomad.log"
+enable_debug         = true
+
+telemetry {
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+  prometheus_metrics         = true
+}
+
+server {
+  enabled          = true
+  bootstrap_expect = "{{ groups['nomad_server']|length }}"
+
+  server_join {
+    retry_join = ["provider=aws tag_key=component tag_value=nomad-server"]
+  }
+}
+
+acl {
+  enabled = true
+}
+
+ui {
+  enabled =  true
+
+  label {
+    text             = "aws {{ nomad_region }}"
+    background_color = "purple"
+    text_color       = "#FFFFFF"
+  }
+}

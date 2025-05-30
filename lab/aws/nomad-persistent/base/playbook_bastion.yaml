@@ -1,0 +1,4 @@
+- hosts: bastion
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"

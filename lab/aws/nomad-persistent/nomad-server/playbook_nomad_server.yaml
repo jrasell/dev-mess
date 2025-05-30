@@ -1,0 +1,21 @@
+- hosts: nomad_server
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
+
+    - role: nomad
+      nomad_config_template: "./templates/nomad_server.hcl.j2"
+      nomad_region: "eu1"
+      nomad_binary_version: "1.10.1"
+      nomad_binary_checksum: "sha256:cc1cffd95d81943d0a7f8abe7dc2b025a644512d1af253456267caebc1f38065"
+      nomad_tls_enabled: true
+      nomad_tls_ca_cert: "../.tls/ca.pem"
+      nomad_tls_cert: "../.tls/{{ inventory_hostname }}-certificate.crt"
+      nomad_tls_cert_key: "../.tls/{{ inventory_hostname }}-certificate.key"

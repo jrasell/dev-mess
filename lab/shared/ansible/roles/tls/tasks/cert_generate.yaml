@@ -30,8 +30,8 @@
       content: "{{ (certificate.content | b64decode) if certificate_exists.stat.exists else omit }}"
       csr_content: "{{ csr.csr }}"
       provider: ownca
-      ownca_path: "{{ tls_path }}/ca-certificate.pem"
-      ownca_privatekey_path: "{{ tls_path }}/ca-certificate.key"
+      ownca_path: "{{ tls_path }}/{{ tls_ca_pem_filename }}"
+      ownca_privatekey_path: "{{ tls_path }}/{{ tls_ca_key_filename }}"
       ownca_not_after: +365d
       ownca_not_before: "-1d"
     register: certificate
