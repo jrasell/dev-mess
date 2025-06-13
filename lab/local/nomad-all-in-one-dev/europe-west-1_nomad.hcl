@@ -7,7 +7,7 @@ region               = "europe-west-1"
 
 telemetry {
   in_memory_collection_interval = "1s"
-  in_memory_rention_period      = "10s"
+  in_memory_retention_period    = "10s"
   publish_allocation_metrics    = true
   publish_node_metrics          = true
   prometheus_metrics            = true
