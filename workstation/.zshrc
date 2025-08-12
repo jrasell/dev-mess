@@ -18,4 +18,12 @@ source $ZSH/oh-my-zsh.sh
 
 # Ensure Go binaries are included in the path.
 export GOPATH=$HOME/.go
+export GOBIN=$HOME/.go/bin/
 export PATH=$PATH:$GOPATH/bin:/usr/local/go/bin
+
+# Load our custom functions.
+fpath=( ~/.zshfn "${fpath[@]}" )
+autoload -Uz $fpath[1]/*(.:t)
+
+alias gpo='git push origin "$(git symbolic-ref --short HEAD)"'
+alias gpfo='git push -f origin "$(git symbolic-ref --short HEAD)"'

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+function setup_zsh() {
+  cp .zshrc "$HOME"/.zshrc
+  cp -r .zshfn "$HOME"/.zshfn
+}
+
 function install_asdf_plugins() {
 
   # Install and globally set Golang.
@@ -22,6 +27,7 @@ function install_asdf_plugins() {
   asdf install nodejs 20.19.1
   asdf set -u nodejs 20.19.1
 
+  asdf plugin-add yarn
   asdf install yarn 1.22.22
   asdf set -u yarn 1.22.22
 }
@@ -42,6 +48,7 @@ function install_helix_config_files() {
   cp .config/helix/languages.toml "$HOME"/.config/helix/languages.toml
 }
 
+setup_zsh
 install_asdf_plugins
 install_helix_go_packages
 install_helix_rust_packages
