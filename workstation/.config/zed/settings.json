@@ -5,8 +5,29 @@
     }
   },
   "buffer_font_size": 15,
+  "diagnostics": {
+    "inline": {
+      "enabled": true
+    }
+  },
   "features": {
     "edit_prediction_provider": "copilot"
+  },
+  "lsp": {
+    "gopls": {
+      "initialization_options": {
+        "hints": {
+          "assignVariableTypes": true,
+          "compositeLiteralFields": true,
+          "compositeLiteralTypes": true,
+          "constantValues": true,
+          "functionTypeParameters": true,
+          "ignoredError": true,
+          "parameterNames": true,
+          "rangeVariableTypes": true
+        }
+      }
+    }
   },
   "telemetry": {
     "diagnostics": false,
