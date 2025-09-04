@@ -3,7 +3,7 @@
   register: binary_installed_version
   ignore_errors: true
   changed_when: nomad_binary_version|string not in binary_installed_version.stdout
-  notify: "restart_nomad"
+  notify: "restart_{{ nomad_service_name }}"
 
 - name: "install_release_binary"
   ansible.builtin.include_role:
@@ -17,13 +17,13 @@
   become: true
   ansible.builtin.template:
     src: "nomad.service.j2"
-    dest: "/etc/systemd/system/nomad.service"
+    dest: "/etc/systemd/system/{{ nomad_service_name }}.service"
     owner: "root"
     group: "root"
     mode: "0755"
   notify:
     - "reload_systemd"
-    - "enable_nomad"
+    - "enable_{{ nomad_service_name }}"
 
 - name: "create_config_dir"
   become: true
@@ -49,7 +49,7 @@
     owner: "{{ nomad_user }}"
     group: "{{ nomad_group }}"
     mode: "0600"
-  notify: "restart_nomad"
+  notify: "restart_{{ nomad_service_name }}"
 
 - block:
   - name: "create_license_directory"
@@ -76,7 +76,7 @@
       owner: "{{ nomad_user }}"
       group: "{{ nomad_group }}"
       mode: "0600"
-  notify: "restart_nomad"
+  notify: "restart_{{ nomad_service_name }}"
   when: nomad_license != ""
 
 - block:
@@ -111,5 +111,5 @@
       owner: "{{ nomad_user }}"
       group: "{{ nomad_group }}"
       mode: "0600"
-  notify: "restart_nomad"
+  notify: "restart_{{ nomad_service_name }}"
   when: nomad_tls_enabled is true

@@ -14,3 +14,8 @@ nomad_tls_cert: ""
 nomad_tls_cert_key: ""
 
 nomad_license: ""
+
+# The name of the systemd service to install for Nomad. This does not need to be
+# changed often, but does allow running server and client agents on the same
+# machine via separate services.
+nomad_service_name: "nomad"
