@@ -13,6 +13,11 @@
   "features": {
     "edit_prediction_provider": "copilot"
   },
+  "inlay_hints": {
+    "enabled": true,
+    "show_type_hints": false,
+    "show_parameter_hints": false
+  },
   "lsp": {
     "gopls": {
       "initialization_options": {
