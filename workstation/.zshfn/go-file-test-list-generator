@@ -1,0 +1,44 @@
+local file="$1"
+if [[ -z "$file" || ! -f "$file" ]]; then
+    echo "file not found: $file" >&2
+    return 1
+fi
+
+local TEST_NAMES
+TEST_NAMES=$(awk '
+      /^[[:space:]]*func[[:space:]]+Test[[:alnum:]_]*([[:space:]]*\[.*\])?\(/ {
+        line=$0
+        # ignore commented out lines
+        if (line ~ /^[[:space:]]*\/\//) next
+        # filter out receiver methods: func (r Receiver) TestX...
+        if (line ~ /^[[:space:]]*func[[:space:]]*\(/) next
+        # must contain *testing.T in params
+        if (line !~ /\(.*\*testing\.T[ ,\)]/) next
+        # strip leading stuff up to Test
+        sub(/^[[:space:]]*func[[:space:]]+/, "", line)
+        # line now begins with TestName...
+        name=line
+        sub(/\(.*/, "", name)       # remove params
+        sub(/\[.*\]/, "", name)     # remove any generic instantiation
+        print name
+      }
+    ' "${file}" | sort -u
+)
+
+# Build regex
+REGEX_BODY=""
+SEP=""
+while IFS= read -r name; do
+
+if [[ "${name}" != Test* ]]; then
+    continue
+fi
+
+# Escape any regex metacharacters (unlikely in valid Go identifiers, but safe)
+ESCAPED=$(printf '%s' "${name}" | sed -E 's/[][^$.|?*+(){}\\]/\\&/g')
+REGEX_BODY+="${SEP}${ESCAPED}"
+SEP="|"
+done <<< "${TEST_NAMES}"
+
+FINAL_REGEX="^(${REGEX_BODY})$"
+echo "${FINAL_REGEX}"

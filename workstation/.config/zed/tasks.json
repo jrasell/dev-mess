@@ -1,0 +1,6 @@
+[
+  {
+    "label": "go test $ZED_FILENAME",
+    "command": "go test -v -run $(go-file-test-list-generator \"$ZED_FILE\") \"$ZED_DIRNAME\""
+  }
+]
