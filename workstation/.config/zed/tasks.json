@@ -1,6 +1,18 @@
 [
   {
     "label": "go test $ZED_FILENAME",
-    "command": "go test -v -run $(go-file-test-list-generator \"$ZED_FILE\") \"$ZED_DIRNAME\""
+    "command": "gotestsum --format=testname -- -v -race -run $(go-file-test-list-generator \"$ZED_FILE\") \"$ZED_DIRNAME\""
+  },
+  {
+    "label": "go test coverprofile $ZED_FILENAME",
+    "command": "gotestsum --format=testname -- -coverprofile=\"$ZED_WORKTREE_ROOT\"/cover.out -v -race -run $(go-file-test-list-generator \"$ZED_FILE\") \"$ZED_DIRNAME\" && go tool cover -html=\"$ZED_WORKTREE_ROOT\"/cover.out"
+  },
+  {
+    "label": "go test ./$ZED_RELATIVE_DIR",
+    "command": "gotestsum --format=testname -- -v -race ./\"$ZED_RELATIVE_DIR\""
+  },
+  {
+    "label": "go test coverprofile ./$ZED_RELATIVE_DIR",
+    "command": "gotestsum --format=testname -- -coverprofile=\"$ZED_WORKTREE_ROOT\"/cover.out -v -race ./\"$ZED_RELATIVE_DIR\" && go tool cover -html=\"$ZED_WORKTREE_ROOT\"/cover.out"
   }
 ]
