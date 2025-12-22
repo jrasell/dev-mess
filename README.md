@@ -3,6 +3,8 @@ My little slice of development chaos including infrastructure tooling and
 workstation configurations I use.
 
 ### Table of Contents
+* [code](./code): Various pieces of code I have written for different purposes
+  such as exploration, benchmarking, or utilities.
 
 * [lab](./lab): Shared configuration objects and implementations which can be
   used for testing, debugging, and running applications; notably Nomad. A number
