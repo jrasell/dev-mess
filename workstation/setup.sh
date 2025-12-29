@@ -52,9 +52,15 @@ function install_zed_config_files() {
   cp .config/zed/settings.json "$HOME"/.config/zed/settings.json
 }
 
+function setup_ghostty() {
+  brew install font-meslo-lg-nerd-font
+  cp .config/ghostty/config "$HOME"/.config/ghostty/config
+}
+
 setup_zsh
 install_asdf_plugins
 install_go_packages
 install_rust_packages
 install_helix_config_files
 install_zed_config_files
+setup_ghostty
