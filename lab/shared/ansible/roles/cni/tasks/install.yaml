@@ -4,6 +4,12 @@
     path: "{{ cni_plugins_path }}"
     state: "directory"
 
+- name: "create_cni_config_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ cni_plugins_config_path }}"
+    state: "directory"
+
 - name: "download_cni_plugins"
   ansible.builtin.get_url:
     url: "{{ cni_plugins_url }}"

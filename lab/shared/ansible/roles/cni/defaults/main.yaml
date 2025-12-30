@@ -1,4 +1,5 @@
 cni_plugins_path: "/opt/cni/bin"
+cni_plugins_config_path: "/opt/cni/config"
 cni_plugins_version: "1.6.2"
 
 cni_plugins_arch_map:
