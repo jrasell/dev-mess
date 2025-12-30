@@ -2,6 +2,7 @@ copy-on-select       = clipboard
 cursor-style         = "block_hollow"
 font-family          = MesloLGS Nerd Font Mono
 font-size            = "15"
+term                 = "xterm-256color"
 theme                = "Dark Pastel"
 scrollback-limit     = 4294967295
 selection-foreground = "000000"
