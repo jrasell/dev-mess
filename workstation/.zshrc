@@ -27,3 +27,6 @@ autoload -Uz $fpath[1]/*(.:t)
 
 alias gpo='git push origin "$(git symbolic-ref --short HEAD)"'
 alias gpfo='git push -f origin "$(git symbolic-ref --short HEAD)"'
+
+# Load direnv if installed, for per-project environment variables.
+eval "$(direnv hook zsh)"
