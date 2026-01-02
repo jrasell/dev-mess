@@ -1,5 +1,6 @@
 # Delegate gathering of facts, so we can run this playbook with a limit when
-# performing updates that require control of the Nomad process restart.
+# performing updates that require control of the Nomad process restart, or so we
+# can update the clients without triggering the server playbook.
 - hosts: all
   tasks:
     - name: "delegate_fact_gathering"
@@ -22,10 +23,12 @@
 
     - role: gantsign.golang
       golang_gopath: "/home/{{ ansible_user_id }}/go"
-      golang_version: "1.24.1"
-      golang_redis_sha256sum: "8df5750ffc0281017fb6070fba450f5d22b600a02081dceef47966ffaf36a3af"
+      golang_version: "1.25.5"
+      golang_mirror: "https://dl.google.com/go/"
+      golang_redis_sha256sum: "b00b694903d126c588c378e72d3545549935d3982635ba3f7a964c9fa23fe3b9"
 
     - role: cni
+      cni_flannel_version: "v1.8.0"
 
     - role: "geerlingguy.docker"
       become: true
@@ -47,6 +50,6 @@
       nomad_config_template: "./templates/nomad_client.hcl.j2"
       nomad_region: "lcy1"
       nomad_tls_enabled: true
-      nomad_tls_ca_cert: "./.tls/ca-certificate.pem"
-      nomad_tls_cert: "./.tls/{{ inventory_hostname }}-certificate.pem"
-      nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-certificate.key"
+      nomad_tls_ca_cert: "./.tls/ca.pem"
+      nomad_tls_cert: "./.tls/{{ inventory_hostname }}.pem"
+      nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-key.pem"

@@ -9,16 +9,13 @@
   roles:
     - role: common
       common_hostname: "{{ inventory_hostname }}"
-      common_apt_packages: [
-        "jq",
-        "net-tools",
-        "unzip",
-      ]
+      common_apt_packages: ["jq", "net-tools", "unzip"]
 
     - role: gantsign.golang
-      golang_gopath: "{{ ansible_user_dir }}/go"
-      golang_version: "1.24.1"
-      golang_redis_sha256sum: "8df5750ffc0281017fb6070fba450f5d22b600a02081dceef47966ffaf36a3af"
+      golang_gopath: "/home/{{ ansible_user_id }}/go"
+      golang_version: "1.25.5"
+      golang_mirror: "https://dl.google.com/go/"
+      golang_redis_sha256sum: "b00b694903d126c588c378e72d3545549935d3982635ba3f7a964c9fa23fe3b9"
 
     - role: cni
 
