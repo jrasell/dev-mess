@@ -7,11 +7,11 @@ resource "ansible_group" "group" {
 }
 
 resource "ansible_host" "host" {
-  for_each   = {for i in data.multipass_instance.instance : i.name => i.ipv4}
-  name       = each.key
-  groups     = [ansible_group.group.name]
+  for_each = local.instance_names
+  name     = each.value
+  groups   = [ansible_group.group.name]
 
   variables = {
-    ansible_host = each.value
+    ansible_host = data.multipass_instance.instance[each.key].ipv4
   }
 }
