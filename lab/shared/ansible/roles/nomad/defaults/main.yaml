@@ -1,8 +1,8 @@
 nomad_user: "root"
 nomad_group: "root"
 
-nomad_binary_version: "1.10.1"
-nomad_binary_checksum: "sha256:8d6dd97e43a448ab8369e8cb91c33db98ee45f198400776a1ef5877331ddb0bb"
+nomad_binary_version: "1.11.1"
+nomad_binary_checksum: "sha256:a120ba1be96d536ef7196911b57bfbe78fe08c53935dfd16eae0206eba09d729"
 
 nomad_config_dir: "/etc/nomad.d"
 nomad_config_template: ""
