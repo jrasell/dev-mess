@@ -1,11 +1,11 @@
 - block:
   - name: "create_private_key"
     community.crypto.openssl_privatekey:
-      path: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.key"
+      path: "{{ tls_path }}/{{ item['agent-name'] }}-key.pem"
 
   - name: "create_certificate_csr"
     community.crypto.openssl_csr_pipe:
-      privatekey_path: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.key"
+      privatekey_path: "{{ tls_path }}/{{ item['agent-name'] }}-key.pem"
       subject_alt_name:
         - "IP:127.0.0.1"
         - "IP:{{ item['ip'] }}"
@@ -16,12 +16,12 @@
 
   - name: "check_existing_certificate"
     stat:
-      path: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.pem"
+      path: "{{ tls_path }}/{{ item['agent-name'] }}.pem"
     register: certificate_exists
 
   - name: "read_existing_certificate"
     slurp:
-      src: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.pem"
+      src: "{{ tls_path }}/{{ item['agent-name'] }}.pem"
     when: certificate_exists.stat.exists
     register: certificate
 
@@ -30,15 +30,15 @@
       content: "{{ (certificate.content | b64decode) if certificate_exists.stat.exists else omit }}"
       csr_content: "{{ csr.csr }}"
       provider: ownca
-      ownca_path: "{{ tls_path }}/ca-certificate.pem"
-      ownca_privatekey_path: "{{ tls_path }}/ca-certificate.key"
+      ownca_path: "{{ tls_path }}/{{ tls_ca_pem_filename }}"
+      ownca_privatekey_path: "{{ tls_path }}/{{ tls_ca_key_filename }}"
       ownca_not_after: +365d
       ownca_not_before: "-1d"
     register: certificate
 
   - name: "write_signed_certificate"
     copy:
-      dest: "{{ tls_path }}/{{ item['agent-name'] }}-certificate.pem"
+      dest: "{{ tls_path }}/{{ item['agent-name'] }}.pem"
       content: "{{ certificate.certificate }}"
     when: certificate is changed
 
