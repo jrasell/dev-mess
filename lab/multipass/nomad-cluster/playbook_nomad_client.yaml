@@ -29,8 +29,17 @@
 
     - role: cni
 
+    # The Docker role is currently broken for Ubuntu > 24.04 due to package
+    # naming changes, so we need to specify the containerd package version to
+    # use.
     - role: "geerlingguy.docker"
       become: true
+      docker_packages:
+        - "docker-ce"
+        - "docker-ce-cli"
+        - "docker-ce-rootless-extras"
+        - "containerd.io=2.2.0-2~ubuntu.24.04~noble"
+      docker_packages_state: present
       docker_users:
         - "{{ ansible_user_id }}"
 
