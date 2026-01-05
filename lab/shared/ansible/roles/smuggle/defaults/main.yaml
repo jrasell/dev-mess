@@ -1,0 +1,11 @@
+smuggle_version: "v0.0.1-alpha.1"
+smuggle_install_path: "/usr/local/bin"
+smuggle_download_url: "https://github.com/rasorp/smuggle/releases/download/{{ smuggle_version }}/smuggle_{{ smuggle_version }}_{{ ansible_system | lower }}_{{ cni_plugins_arch_map[ansible_architecture] }}.tar.gz"
+
+smuggle_cni_version: "v0.0.1-alpha.1"
+smuggle_cni_install_path: "/opt/cni/bin"
+smuggle_cni_download_url: "https://github.com/rasorp/smuggle-cni/releases/download/{{ smuggle_cni_version }}/smuggle-cni_{{ smuggle_cni_version }}_{{ ansible_system | lower }}_{{ cni_plugins_arch_map[ansible_architecture] }}.tar.gz"
+
+smuggle_arch_map:
+  x86_64: "amd64"
+  aarch64: "arm64"

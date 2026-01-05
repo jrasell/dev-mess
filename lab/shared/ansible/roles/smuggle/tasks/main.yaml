@@ -1,0 +1,87 @@
+---
+- name: "install_smuggle"
+  become: true
+  block:
+    - name: "check_smuggle_installed"
+      ansible.builtin.stat:
+        path: "{{ smuggle_install_path }}/smuggle"
+      register: smuggle_stat
+
+    - name: "determine_smuggle_installtion_needed"
+      ansible.builtin.set_fact:
+        smuggle_needs_install: >-
+          {{ not smuggle_stat.stat.exists }}
+
+    - name: "download_smuggle"
+      ansible.builtin.get_url:
+        url: "{{ smuggle_download_url }}"
+        dest: "/tmp/smuggle.tar.gz"
+        mode: "0644"
+      when: smuggle_needs_install | bool
+
+    - name: "unarchive_smuggle"
+      ansible.builtin.unarchive:
+        src: "/tmp/smuggle.tar.gz"
+        dest: "{{ smuggle_install_path }}"
+        remote_src: yes
+      when: smuggle_needs_install | bool
+
+    - name: "remove_smuggle_tar_file"
+      ansible.builtin.file:
+        path: "/tmp/smuggle.tar.gz"
+        state: absent
+      when: smuggle_needs_install | bool
+
+- name: "install_smuggle_cni"
+  become: true
+  block:
+    - name: "check_smuggle_cni_installed"
+      ansible.builtin.stat:
+        path: "{{ smuggle_cni_install_path }}/smuggle"
+      register: smuggle_cni_stat
+
+    - name: "determine_smuggle_cni_installtion_needed"
+      ansible.builtin.set_fact:
+        smuggle_cni_needs_install: >-
+          {{ not smuggle_cni_stat.stat.exists }}
+
+    - name: "create_cni_plugin_bin_dir"
+      ansible.builtin.file:
+        path: "{{ smuggle_cni_install_path }}"
+        state: directory
+        mode: "0755"
+      when: smuggle_cni_needs_install | bool
+
+    - name: "download_smuggle_cni"
+      ansible.builtin.get_url:
+        url: "{{ smuggle_cni_download_url }}"
+        dest: "/tmp/smuggle-cni.tar.gz"
+        mode: "0644"
+      when: smuggle_cni_needs_install | bool
+
+    - name: "unarchive_smuggle_cni"
+      ansible.builtin.unarchive:
+        src: "/tmp/smuggle-cni.tar.gz"
+        dest: "{{ smuggle_cni_install_path }}"
+        remote_src: yes
+      when: smuggle_cni_needs_install | bool
+
+    - name: "copy_smuggle_cni_binary"
+      ansible.builtin.copy:
+        remote_src: yes
+        src: "{{ smuggle_cni_install_path }}/smuggle-cni"
+        dest: "{{ smuggle_cni_install_path }}/smuggle"
+        mode: "0755"
+      when: smuggle_cni_needs_install | bool
+
+    - name: "remove_smuggle_cni_source_binary"
+      ansible.builtin.file:
+        path: "{{ smuggle_cni_install_path }}/smuggle-cni"
+        state: absent
+      when: smuggle_cni_needs_install | bool
+
+    - name: "remove_smuggle_cni_tar_file"
+      ansible.builtin.file:
+        path: "/tmp/smuggle-cni.tar.gz"
+        state: absent
+      when: smuggle_cni_needs_install | bool
