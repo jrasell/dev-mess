@@ -7,3 +7,9 @@ cni_plugins_arch_map:
   aarch64: "arm64"
 
 cni_plugins_url: "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-{{ ansible_system | lower }}-{{ cni_plugins_arch_map[ansible_architecture] }}-v{{ cni_plugins_version }}.tgz"
+
+# CNI configuration files that should be created on the host. This should be a
+# list of dictionaries with the following keys:
+# - name: The name of the CNI configuration file (e.g., "10-mynet.conf")
+# - content: The content of the CNI configuration file in JSON format
+cni_configs: []

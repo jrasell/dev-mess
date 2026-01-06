@@ -5,3 +5,11 @@
 
 - import_tasks: install.yaml
   when: not cni_plugins_dir_stat.stat.exists
+
+- name: "write_cni_configs"
+  become: true
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "{{ cni_plugins_config_path }}/{{ item.name }}"
+    mode: "0644"
+  loop: "{{ cni_configs }}"
