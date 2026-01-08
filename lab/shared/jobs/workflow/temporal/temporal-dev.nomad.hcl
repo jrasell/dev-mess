@@ -10,6 +10,11 @@ variable "network_mode" {
   default     = "bridge"
 }
 
+locals {
+  service_address_mode = substr(var.network_mode, 0, 4) == "cni/" ? "alloc" : "auto"
+  check_address_mode   = substr(var.network_mode, 0, 4) == "cni/" ? "alloc" : "host"
+}
+
 job "temporal-dev" {
   type      = "service"
   namespace = var.namespace
@@ -27,26 +32,30 @@ job "temporal-dev" {
     }
 
     service {
-      provider = "nomad"
-      name     = "temporal-api"
-      port     = "api"
+      address_mode = local.service_address_mode
+      provider     = "nomad"
+      name         = "temporal-api"
+      port         = "api"
 
       check {
-        type     = "tcp"
-        interval = "10s"
-        timeout  = "2s"
+        address_mode = local.check_address_mode
+        type         = "tcp"
+        interval     = "10s"
+        timeout      = "2s"
       }
     }
 
     service {
-      provider = "nomad"
-      name     = "temporal-ui"
-      port     = "ui"
+      address_mode = local.address_mode
+      provider     = "nomad"
+      name         = "temporal-ui"
+      port         = "ui"
 
       check {
-        type     = "tcp"
-        interval = "10s"
-        timeout  = "2s"
+        address_mode = local.check_address_mode
+        type         = "tcp"
+        interval     = "10s"
+        timeout      = "2s"
       }
     }
 
@@ -57,7 +66,11 @@ job "temporal-dev" {
         image   = "temporalio/temporal:1.5.1"
         ports   = [ "api", "ui" ]
         command = "server"
-        args    = ["start-dev", "--ip=0.0.0.0", "--ui-ip=0.0.0.0"]
+        args    = [
+          "start-dev",
+          "--ip=${NOMAD_ALLOC_IP_api}",
+          "--ui-ip=${NOMAD_ALLOC_IP_ui}",
+        ]
       }
 
       resources {
