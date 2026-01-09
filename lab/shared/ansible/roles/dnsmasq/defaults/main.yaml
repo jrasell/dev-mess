@@ -1,0 +1,4 @@
+---
+dnsmasq_listen_address: "127.0.0.1"
+dnsmasq_listen_port: 53
+dnsmasq_servers: []

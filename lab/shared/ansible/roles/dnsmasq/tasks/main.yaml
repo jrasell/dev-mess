@@ -1,0 +1,24 @@
+---
+- name: "install_dnsmasq"
+  become: true
+  ansible.builtin.package:
+    name: dnsmasq
+    state: present
+
+- import_tasks: ubuntu.yaml
+  when: ansible_distribution == "Ubuntu"
+
+- name: "write_config_file"
+  become: true
+  ansible.builtin.template:
+    src: dnsmasq.conf.j2
+    dest: /etc/dnsmasq.d/dnsmasq.conf
+    validate: "dnsmasq --test --conf-file=%s"
+  notify: restart dnsmasq
+
+- name: "start_and_enable_dnsmasq"
+  become: true
+  ansible.builtin.service:
+    name: dnsmasq
+    state: started
+    enabled: yes

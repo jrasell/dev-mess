@@ -1,0 +1,25 @@
+---
+- name: "stop_systemd_resolved"
+  become: true
+  ansible.builtin.systemd_service:
+    name: systemd-resolved
+    state: stopped
+    enabled: false
+
+- name: "remove_existing_resolv_conf"
+  become: true
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    state: absent
+    attributes: -i
+
+- name: "create_resolv_conf"
+  become: true
+  ansible.builtin.copy:
+    content: |
+      nameserver 127.0.0.1
+      options timeout:2 attempts:3
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: "0644"

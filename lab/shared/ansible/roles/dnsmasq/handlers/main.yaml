@@ -1,0 +1,6 @@
+---
+- name: restart dnsmasq
+  become: true
+  ansible.builtin.service:
+    name: dnsmasq
+    state: restarted

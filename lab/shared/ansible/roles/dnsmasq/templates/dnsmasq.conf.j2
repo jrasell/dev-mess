@@ -1,0 +1,11 @@
+listen-address={{ dnsmasq_listen_address }}
+port={{ dnsmasq_listen_port }}
+
+{% if dnsmasq_servers is defined %}
+{% for server in dnsmasq_servers %}
+server={{ server }}
+{% endfor %}
+{% endif %}
+
+no-resolv
+cache-size={{ dnsmasq_cache_size }}
