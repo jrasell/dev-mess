@@ -1,0 +1,30 @@
+# Delegate gathering of facts, so we can run this against the localhost only but
+# collect the relevant data from the Nomad instance to populate our environment.
+- hosts: all
+  tasks:
+    - name: "delegate_fact_gathering"
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['nomad'] }}"
+
+- hosts: localhost
+  vars:
+    nomad_host: "{{ groups['nomad'] | first }}"
+    nomad_ip: "{{ hostvars[groups['nomad'] | first]['ansible_host'] }}"
+  tasks:
+    - name: "write_bootstrap_token"
+      ansible.builtin.copy:
+        content: "00000000-0000-0000-0000-000000000000\n"
+        dest: "{{ playbook_dir }}/generated_nomad_root_bootstrap_token"
+
+    - name: "write_envrc"
+      ansible.builtin.copy:
+        content: |
+          export NOMAD_TOKEN=00000000-0000-0000-0000-000000000000
+          export NOMAD_ADDR=https://{{ nomad_ip }}:4646
+          export NOMAD_CACERT=./.tls/ca.pem
+          export NOMAD_CLIENT_CERT=./.tls/{{ nomad_host }}-server.pem
+          export NOMAD_CLIENT_KEY=./.tls/{{ nomad_host }}-server-key.pem
+          export NOMAD_CLI_SHOW_HINTS=false
+        dest: "{{ playbook_dir }}/.envrc"

@@ -1,0 +1,81 @@
+- hosts: nomad
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
+
+    # Configure dnsmasq to forward .nomad requests to CoreDNS which will be
+    # running as a Nomad job on the same host.
+    #
+    # Listening on the host's primary IP address as well as, so that containers
+    # using the host's DNS resolver can also resolve .nomad addresses.
+    - role: dnsmasq
+      dnsmasq_listen_address: "127.0.0.1,{{ ansible_facts['default_ipv4']['address'] }}"
+      dnsmasq_servers:
+        - /nomad/{{ ansible_facts['default_ipv4']['address'] }}#1053
+        - 1.1.1.1
+        - 8.8.8.8
+        - 8.8.4.4
+      dnsmasq_cache_size: 1000
+
+    - role: cni
+      cni_configs:
+        - name: "vxlan.conf"
+          content: '{"name": "vxlan","type": "smuggle"}'
+
+    - role: smuggle
+
+    # The Docker role is currently broken for Ubuntu > 24.04 due to package
+    # naming changes, so we need to specify the containerd package version to
+    # use.
+    - role: "geerlingguy.docker"
+      become: true
+      docker_packages:
+        - "docker-ce"
+        - "docker-ce-cli"
+        - "docker-ce-rootless-extras"
+        - "containerd.io=2.2.0-2~ubuntu.24.04~noble"
+      docker_packages_state: present
+      docker_users:
+        - "{{ ansible_user_id }}"
+
+    - role: tls
+      tls_self_signed_generate:
+        - agent-name: "{{ inventory_hostname }}-server"
+          ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+          dns: "server.lcy1.nomad"
+        - agent-name: "{{ inventory_hostname }}-client"
+          ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+          dns: "client.lcy1.nomad"
+
+    - role: nomad
+      nomad_binary_version: "1.11.1"
+      nomad_binary_checksum: "sha256:a120ba1be96d536ef7196911b57bfbe78fe08c53935dfd16eae0206eba09d729"
+      nomad_config_dir: "/etc/nomad-server.d/"
+      nomad_data_dir: "/opt/nomad-server/data/"
+      nomad_service_name: "nomad-server"
+      nomad_config_template: "./templates/nomad_server.hcl.j2"
+      nomad_region: "lcy1"
+      nomad_tls_enabled: true
+      nomad_tls_ca_cert: "./.tls/ca.pem"
+      nomad_tls_cert: "./.tls/{{ inventory_hostname }}-server.pem"
+      nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-server-key.pem"
+
+    - role: nomad
+      nomad_binary_version: "1.11.1"
+      nomad_binary_checksum: "sha256:a120ba1be96d536ef7196911b57bfbe78fe08c53935dfd16eae0206eba09d729"
+      nomad_config_dir: "/etc/nomad-client.d/"
+      nomad_data_dir: "/opt/nomad-client/data/"
+      nomad_service_name: "nomad-client"
+      nomad_config_template: "./templates/nomad_client.hcl.j2"
+      nomad_region: "lcy1"
+      nomad_tls_enabled: true
+      nomad_tls_ca_cert: "./.tls/ca.pem"
+      nomad_tls_cert: "./.tls/{{ inventory_hostname }}-client.pem"
+      nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-client-key.pem"

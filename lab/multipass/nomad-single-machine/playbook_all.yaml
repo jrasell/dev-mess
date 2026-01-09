@@ -1,0 +1,2 @@
+- import_playbook: playbook_nomad.yaml
+- import_playbook: playbook_localhost.yaml
