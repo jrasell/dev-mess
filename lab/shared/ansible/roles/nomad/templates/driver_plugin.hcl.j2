@@ -1,0 +1,18 @@
+plugin "{{ item.name }}" {
+  config {
+{% if item.config is defined %}
+    # Custom configuration
+{% for key, value in item.config.items() %}
+{% if value is string %}
+    {{ key }} = "{{ value }}"
+{% elif value is boolean %}
+    {{ key }} = {{ value | lower }}
+{% elif value is number %}
+    {{ key }} = {{ value }}
+{% else %}
+    {{ key }} = {{ value | to_json }}
+{% endif %}
+{% endfor %}
+{% endif %}
+  }
+}

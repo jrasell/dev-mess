@@ -52,64 +52,135 @@
   notify: "restart_{{ nomad_service_name }}"
 
 - block:
-  - name: "create_license_directory"
-    become: true
-    ansible.builtin.file:
-      path: "{{ nomad_config_dir }}/.license"
-      owner: "{{ nomad_user }}"
-      group: "{{ nomad_group }}"
-      state: "directory"
-      mode: "0700"
-  - name: "write_license_file"
-    become: true
-    ansible.builtin.copy:
-      dest: "{{ nomad_config_dir }}/.license/license.hclic"
-      content: "{{ nomad_license }}"
-      owner: "{{ nomad_user }}"
-      group: "{{ nomad_group }}"
-      mode: "0600"
-  - name: "create_license_config_file"
-    become: true
-    ansible.builtin.template:
-      src: "license.hcl.j2"
-      dest: "{{ nomad_config_dir }}/license.hcl"
-      owner: "{{ nomad_user }}"
-      group: "{{ nomad_group }}"
-      mode: "0600"
+    - name: "create_license_directory"
+      become: true
+      ansible.builtin.file:
+        path: "{{ nomad_config_dir }}/.license"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        state: "directory"
+        mode: "0700"
+    - name: "write_license_file"
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ nomad_config_dir }}/.license/license.hclic"
+        content: "{{ nomad_license }}"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0600"
+    - name: "create_license_config_file"
+      become: true
+      ansible.builtin.template:
+        src: "license.hcl.j2"
+        dest: "{{ nomad_config_dir }}/license.hcl"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0600"
   notify: "restart_{{ nomad_service_name }}"
   when: nomad_license != ""
 
 - block:
-  - name: "create_tls_directory"
-    become: true
-    ansible.builtin.file:
-      path: "{{ nomad_config_dir }}/.tls"
-      owner: "{{ nomad_user }}"
-      group: "{{ nomad_group }}"
-      state: "directory"
-      mode: "0700"
-  - name: "write_tls_files"
-    become: true
-    ansible.builtin.copy:
-      dest: "{{ item.dest }}"
-      src: "{{ item.src }}"
-      owner: "{{ nomad_user }}"
-      group: "{{ nomad_group }}"
-      mode: "0600"
-    loop:
-      - dest: "{{ nomad_config_dir }}/.tls/ca.pem"
-        src: "{{ nomad_tls_ca_cert }}"
-      - dest: "{{ nomad_config_dir }}/.tls/cert.pem"
-        src: "{{ nomad_tls_cert }}"
-      - dest: "{{ nomad_config_dir }}/.tls/cert-key.pem"
-        src: "{{ nomad_tls_cert_key }}"
-  - name: "create_tls_config_file"
-    become: true
-    ansible.builtin.template:
-      src: "tls.hcl.j2"
-      dest: "{{ nomad_config_dir }}/tls.hcl"
-      owner: "{{ nomad_user }}"
-      group: "{{ nomad_group }}"
-      mode: "0600"
+    - name: "create_tls_directory"
+      become: true
+      ansible.builtin.file:
+        path: "{{ nomad_config_dir }}/.tls"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        state: "directory"
+        mode: "0700"
+    - name: "write_tls_files"
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        src: "{{ item.src }}"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0600"
+      loop:
+        - dest: "{{ nomad_config_dir }}/.tls/ca.pem"
+          src: "{{ nomad_tls_ca_cert }}"
+        - dest: "{{ nomad_config_dir }}/.tls/cert.pem"
+          src: "{{ nomad_tls_cert }}"
+        - dest: "{{ nomad_config_dir }}/.tls/cert-key.pem"
+          src: "{{ nomad_tls_cert_key }}"
+    - name: "create_tls_config_file"
+      become: true
+      ansible.builtin.template:
+        src: "tls.hcl.j2"
+        dest: "{{ nomad_config_dir }}/tls.hcl"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0600"
   notify: "restart_{{ nomad_service_name }}"
   when: nomad_tls_enabled is true
+
+- name: "download_and_install_plugins"
+  become: true
+  block:
+    - name: "create_plugin_directory"
+      ansible.builtin.file:
+        path: "{{ nomad_plugin_dir }}"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        state: "directory"
+        mode: "0755"
+
+    - name: "get_system_architecture"
+      ansible.builtin.set_fact:
+        nomad_plugin_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+        nomad_plugin_os: "{{ 'darwin' if ansible_system == 'Darwin' else 'linux' }}"
+
+    - name: "check_installed_plugin_versions"
+      ansible.builtin.stat:
+        path: "{{ nomad_plugin_dir }}/{{ item.name }}"
+      register: installed_plugins
+      loop: "{{ nomad_driver_plugins }}"
+      when: nomad_driver_plugins is defined and nomad_driver_plugins | length > 0
+
+    - name: "download_plugin_archives"
+      ansible.builtin.get_url:
+        url: "https://releases.hashicorp.com/{{ item.item.name }}/{{ item.item.version }}/{{ item.item.name }}_{{ item.item.version }}_{{ nomad_plugin_os }}_{{ nomad_plugin_arch }}.zip"
+        dest: "/tmp/{{ item.item.name }}_{{ item.item.version }}.zip"
+        mode: "0644"
+        checksum: "{{ item.item.checksum | default(omit) }}"
+      loop: "{{ installed_plugins.results }}"
+      when:
+        - nomad_driver_plugins is defined
+        - nomad_driver_plugins | length > 0
+        - not item.stat.exists or (item.item.force_reinstall | default(false))
+      register: plugin_downloads
+
+    - name: "extract_plugin_binaries"
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ item.item.item.name }}_{{ item.item.item.version }}.zip"
+        dest: "{{ nomad_plugin_dir }}"
+        remote_src: true
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0755"
+      loop: "{{ plugin_downloads.results }}"
+      when:
+        - plugin_downloads is defined
+        - not item.skipped | default(false)
+      notify: "restart_{{ nomad_service_name }}"
+
+    - name: "cleanup_plugin_archives"
+      ansible.builtin.file:
+        path: "/tmp/{{ item.item.item.name }}_{{ item.item.item.version }}.zip"
+        state: absent
+      loop: "{{ plugin_downloads.results }}"
+      when:
+        - plugin_downloads is defined
+        - not item.skipped | default(false)
+
+    - name: "write_plugin_config_files"
+      ansible.builtin.template:
+        src: "driver_plugin.hcl.j2"
+        dest: "{{ nomad_config_dir }}/{{ item.name }}.hcl"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0600"
+      loop: "{{ nomad_driver_plugins }}"
+      notify: "restart_{{ nomad_service_name }}"
+
+  when: nomad_driver_plugins is defined and nomad_driver_plugins | length > 0
