@@ -1,5 +1,5 @@
 module "nomad_server" {
-  source             = "../../shared/terraform/multipass-compute"
+  source = "../../shared/terraform/multipass-compute"
 
   ansible_group_name   = "nomad_server"
   instance_count       = 3
@@ -10,7 +10,7 @@ module "nomad_server" {
 }
 
 module "nomad_client" {
-  source             = "../../shared/terraform/multipass-compute"
+  source = "../../shared/terraform/multipass-compute"
 
   ansible_group_name   = "nomad_client"
   instance_count       = 2

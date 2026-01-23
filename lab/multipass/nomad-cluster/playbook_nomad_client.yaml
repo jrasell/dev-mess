@@ -10,7 +10,32 @@
       loop: "{{ groups['nomad_client'] }}"
 
 - hosts: nomad_client
+  tasks:
+    # On Ubuntu, remove the default network link file which causes issues with
+    # the netlink library used by Smuggle and caues inconsistent VTEP mac
+    # address discovery.
+    - name: "delete_network_link_file"
+      become: true
+      ansible.builtin.file:
+        state: absent
+        path: "/etc/systemd/network/99-default.link"
+      when: ansible_distribution == "Ubuntu"
+
   roles:
+    # Configure dnsmasq to forward .nomad requests to CoreDNS which will be
+    # running as a Nomad job on the same host.
+    #
+    # Listening on the host's primary IP address as well as, so that containers
+    # using the host's DNS resolver can also resolve .nomad addresses.
+    - role: dnsmasq
+      dnsmasq_listen_address: "127.0.0.1,{{ ansible_facts['default_ipv4']['address'] }}"
+      dnsmasq_servers:
+        - /nomad/{{ ansible_facts['default_ipv4']['address'] }}#1053
+        - 1.1.1.1
+        - 8.8.8.8
+        - 8.8.4.4
+      dnsmasq_cache_size: 1000
+
     - role: common
       common_hostname: "{{ inventory_hostname }}"
       common_apt_packages:
@@ -18,6 +43,7 @@
         - "git"
         - "jq"
         - "make"
+        - "podman"
         - "net-tools"
         - "unzip"
 
@@ -28,6 +54,11 @@
       golang_redis_sha256sum: "b00b694903d126c588c378e72d3545549935d3982635ba3f7a964c9fa23fe3b9"
 
     - role: cni
+      cni_configs:
+        - name: "vxlan.conf"
+          content: '{"name": "vxlan","type": "smuggle"}'
+
+    - role: smuggle
 
     # The Docker role is currently broken for Ubuntu > 24.04 due to package
     # naming changes, so we need to specify the containerd package version to
@@ -61,3 +92,7 @@
       nomad_tls_ca_cert: "./.tls/ca.pem"
       nomad_tls_cert: "./.tls/{{ inventory_hostname }}.pem"
       nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-key.pem"
+      nomad_driver_plugins:
+        - name: "nomad-driver-podman"
+          version: "0.6.4"
+          checksum: "sha256:e0c2ba459bfa5d4d6a5d9efdc05ac50936f8529d888b04e28725f302342f57d5"
