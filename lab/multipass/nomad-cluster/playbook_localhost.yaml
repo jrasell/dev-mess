@@ -14,10 +14,10 @@
   roles:
     - role: helper
       helper_file_write_content_local:
-        - content: "b6e63b6a-527c-14db-9474-063cb1dcc026\n"
+        - content: "00000000-0000-0000-0000-000000000000\n"
           dst: "{{ playbook_dir }}/generated_nomad_root_bootstrap_token"
         - content: |
-            export NOMAD_TOKEN=b6e63b6a-527c-14db-9474-063cb1dcc026
+            export NOMAD_TOKEN=00000000-0000-0000-0000-000000000000
             export NOMAD_ADDR="https://{{ hostvars[first_nomad_server]['ansible_facts']['default_ipv4']['address'] }}:4646"
             export NOMAD_CACERT=./.tls/ca.pem
             export NOMAD_CLIENT_CERT=./.tls/{{ first_nomad_server }}.pem
