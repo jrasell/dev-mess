@@ -68,8 +68,8 @@
       nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-server-key.pem"
 
     - role: nomad
-      nomad_binary_version: "1.11.1"
-      nomad_binary_checksum: "sha256:a120ba1be96d536ef7196911b57bfbe78fe08c53935dfd16eae0206eba09d729"
+      nomad_binary_version: "2.0.0-beta.1"
+      nomad_binary_checksum: "sha256:f2fcf39535de8c7c3b3d08c052557e4939661c5ef27f7a575d1cb1256575e1fc"
       nomad_config_dir: "/etc/nomad-client.d/"
       nomad_data_dir: "/opt/nomad-client/data/"
       nomad_service_name: "nomad-client"
