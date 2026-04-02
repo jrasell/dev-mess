@@ -1,3 +1,9 @@
+variable "job_name" {
+  type        = string
+  default     = "postgres-dev"
+  description = "The name to give to the Nomad job"
+}
+
 variable "node_pool" {
   type        = string
   default     = "all"
@@ -22,6 +28,7 @@ locals {
 }
 
 job "postgres-dev" {
+  name      = var.job_name
   namespace = var.namespace
   node_pool = var.node_pool
 
@@ -36,7 +43,7 @@ job "postgres-dev" {
 
     service {
       address_mode = local.service_address_mode
-      name         = "postgres"
+      name         = var.job_name
       port         = "db"
       provider     = "nomad"
 
