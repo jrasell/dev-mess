@@ -1,0 +1,18 @@
+- hosts: vault_server
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
+
+    - role: vault
+      vault_binary_version: "2.0.0"
+      vault_binary_checksum: "sha256:5f04207fd0fbabbb8c6cca494fdee96f81bb0a82e1176670649e1aeeaadf0281"
+      vault_config_dir: "/etc/vault.d/"
+      vault_data_dir: "/opt/vault/data/"
+      vault_config_template: "./templates/vault_server.hcl.j2"

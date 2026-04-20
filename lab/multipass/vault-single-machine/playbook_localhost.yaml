@@ -1,0 +1,21 @@
+# Delegate gathering of facts, so we can run this against the localhost only but
+# collect the relevant data from the Vault instance to populate our environment.
+- hosts: all
+  tasks:
+    - name: "delegate_fact_gathering"
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['vault_server'] }}"
+
+- hosts: localhost
+  vars:
+    vault_host: "{{ groups['vault_server'] | first }}"
+    vault_ip: "{{ hostvars[groups['vault_server'] | first]['ansible_host'] }}"
+
+  tasks:
+    - name: "write_envrc"
+      ansible.builtin.copy:
+        content: |
+          export VAULT_ADDR=http://{{ vault_ip }}:8200
+        dest: "{{ playbook_dir }}/.envrc"

@@ -1,0 +1,24 @@
+[Unit]
+Description=Vault
+Documentation=https://developer.hashicorp.com/vault/docs
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User={{ vault_user }}
+Group={{ vault_group }}
+
+Type=notify
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/vault server -config {{ vault_config_dir }}
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+LimitCORE=0
+
+[Install]
+WantedBy=multi-user.target

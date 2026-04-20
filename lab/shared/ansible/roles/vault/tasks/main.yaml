@@ -1,0 +1,71 @@
+- name: "create_vault_group"
+  become: true
+  ansible.builtin.group:
+    name: "{{ vault_group }}"
+    system: true
+    state: present
+
+- name: "create_vault_user"
+  become: true
+  ansible.builtin.user:
+    name: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: "installed_version_check"
+  command: "/usr/local/bin/vault version"
+  register: binary_installed_version
+  ignore_errors: true
+  changed_when: vault_binary_version|string not in binary_installed_version.stdout
+  notify: "restart_vault"
+
+- name: "install_release_binary"
+  ansible.builtin.include_role:
+    name: hashicorp_release
+  vars:
+    hashicorp_release_product_name: "vault"
+    hashicorp_release_product_version: "{{ vault_binary_version }}"
+    hashicorp_release_product_checksum: "{{ vault_binary_checksum }}"
+
+- name: "create_service_file"
+  become: true
+  ansible.builtin.template:
+    src: "vault.service.j2"
+    dest: "/etc/systemd/system/vault.service"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  notify:
+    - "reload_systemd"
+    - "enable_vault"
+
+- name: "create_config_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ vault_config_dir }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+
+- name: "create_data_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ vault_data_dir }}"
+    state: directory
+    mode: "0700"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+
+- name: "write_config_template"
+  become: true
+  ansible.builtin.template:
+    src: "{{ vault_config_template }}"
+    dest: "{{ vault_config_dir }}/base.hcl"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: "0600"
+  notify: "restart_vault"

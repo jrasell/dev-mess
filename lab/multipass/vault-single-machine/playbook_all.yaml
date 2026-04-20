@@ -1,0 +1,2 @@
+- import_playbook: playbook_vault_server.yaml
+- import_playbook: playbook_localhost.yaml

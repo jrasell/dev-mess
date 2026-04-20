@@ -1,0 +1,9 @@
+vault_user: "vault"
+vault_group: "vault"
+
+vault_binary_version: "1.21.4"
+vault_binary_checksum: "sha256:1104ef701aad16e104e2e7b4d2a02a6ec993237559343f3097ac63a00b42e85d"
+
+vault_config_dir: "/etc/vault.d"
+vault_config_template: ""
+vault_data_dir: "/opt/vault/data"
