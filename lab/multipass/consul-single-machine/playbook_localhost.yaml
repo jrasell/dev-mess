@@ -1,0 +1,17 @@
+# Delegate gathering of facts, so we can run this against the localhost only but
+# collect the relevant data from the Consul instance to populate our environment.
+- hosts: all
+  tasks:
+    - name: "delegate_fact_gathering"
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['consul_server'] }}"
+
+- hosts: localhost
+  tasks:
+    - name: "write_envrc"
+      ansible.builtin.copy:
+        content: |
+          export CONSUL_HTTP_ADDR=http://{{ hostvars[groups['consul_server'] | first]['ansible_host'] }}:8500
+        dest: "{{ playbook_dir }}/.envrc"

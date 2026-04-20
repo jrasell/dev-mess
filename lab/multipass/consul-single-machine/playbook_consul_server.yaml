@@ -1,0 +1,18 @@
+- hosts: consul_server
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
+
+    - role: consul
+      consul_binary_version: "1.22.6"
+      consul_binary_checksum: "sha256:a760371111ff3e1f0813672b240f833077f73c13ea37e75abc223ede534100b6"
+      consul_config_dir: "/etc/consul.d/"
+      consul_data_dir: "/opt/consul/data/"
+      consul_config_template: "./templates/consul_server.hcl.j2"

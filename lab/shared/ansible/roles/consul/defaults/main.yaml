@@ -1,0 +1,9 @@
+consul_user: "consul"
+consul_group: "consul"
+
+consul_binary_version: "1.22.6"
+consul_binary_checksum: "sha256:1104ef701aad16e104e2e7b4d2a02a6ec993237559343f3097ac63a00b42e85d"
+
+consul_config_dir: "/etc/consul.d"
+consul_config_template: ""
+consul_data_dir: "/opt/consul/data"
