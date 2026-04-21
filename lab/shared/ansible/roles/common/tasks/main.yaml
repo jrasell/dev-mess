@@ -25,3 +25,36 @@
     name: "{{ common_hostname }}"
     use: systemd
   when: common_hostname is defined
+
+- name: "create_groups"
+  become: true
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    state: present
+  with_items: "{{ common_users }}"
+
+- name: "create_users"
+  become: true
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    group: "{{ item.name }}"
+    groups: "adm,cdrom,sudo,dip,lxd"
+    shell: "/bin/bash"
+  with_items: "{{ common_users }}"
+
+- name: "set_authorized_keys"
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ item.ssh_key }}"
+  with_items: "{{ common_users }}"
+
+- name: "create_sudoers"
+  become: true
+  community.general.sudoers:
+    name: "{{ item.name }}"
+    state: present
+    user: "{{ item.name }}"
+    commands: ALL
+  with_items: "{{ common_users }}"

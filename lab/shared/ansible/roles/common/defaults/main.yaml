@@ -6,3 +6,5 @@ common_apt_packages: [
 ]
 
 common_hostname: ""
+
+common_users: [ ]
