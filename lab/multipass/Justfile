@@ -1,0 +1,80 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+multipass_root := justfile_directory()
+consul_dir := multipass_root + "/consul-single-machine"
+vault_dir := multipass_root + "/vault-single-machine"
+nomad_dir := multipass_root + "/nomad-cluster"
+
+[private]
+default:
+    @just --list
+
+_preflight:
+    @if ! command -v ansible-playbook >/dev/null 2>&1; then echo "error: missing 'ansible-playbook'" >&2; exit 1; fi
+    @if ! command -v jq              >/dev/null 2>&1; then echo "error: missing 'jq'" >&2; exit 1; fi
+    @if ! command -v multipass       >/dev/null 2>&1; then echo "error: missing 'multipass'" >&2; exit 1; fi
+    @if ! command -v nomad           >/dev/null 2>&1; then echo "error: missing 'nomad'" >&2; exit 1; fi
+    @if ! command -v terraform       >/dev/null 2>&1; then echo "error: missing 'terraform'" >&2; exit 1; fi
+    @if ! command -v vault           >/dev/null 2>&1; then echo "error: missing 'vault'" >&2; exit 1; fi
+
+_hashistack_refresh_envrc:
+    : > .envrc
+    cat {{ nomad_dir }}/.envrc > .envrc
+    cat {{ vault_dir }}/.envrc >> .envrc
+    cat {{ consul_dir }}/.envrc >> .envrc
+
+_hashistack_destroy_envrc:
+    rm -f .envrc
+
+# Start a Vault sever, Consul server, and Nomad cluster.
+hashistack_up:
+    @just _preflight
+
+    terraform -chdir="{{ consul_dir }}" init
+    terraform -chdir="{{ consul_dir }}" apply -auto-approve
+    terraform -chdir="{{ vault_dir }}" init
+    terraform -chdir="{{ vault_dir }}" apply -auto-approve
+
+    (cd "{{ vault_dir }}" && scripts/init_unseal.sh --addr "$(terraform -chdir="{{ vault_dir }}" output -no-color -raw vault_server_address)")
+
+    # Deploy the Nomad cluster, passing in the Consul and Vault server addresses
+    # for the configuration of the Nomad clients and servers.
+    terraform -chdir="{{ nomad_dir }}" init
+
+    terraform -chdir="{{ nomad_dir }}" apply -auto-approve \
+    -var "consul_address=$(terraform -chdir="{{ consul_dir }}" output -no-color -raw consul_server_address)" \
+    -var "vault_address=$(terraform -chdir="{{ vault_dir }}" output -no-color -raw vault_server_address)"
+
+    # Configure Vault for Nomad workload identity.
+    terraform -chdir="{{ nomad_dir }}/workload-identity" init
+
+    terraform -chdir="{{ nomad_dir }}/workload-identity" apply -auto-approve \
+    -var "nomad_addresses=$(terraform -chdir="{{ nomad_dir }}" output -no-color nomad_server_addresses)" \
+    -var "nomad_cert_pem=$(terraform -chdir="{{ nomad_dir }}" output -no-color -raw nomad_ca_cert_pem)" \
+    -var "vault_address=$(terraform -chdir="{{ vault_dir }}" output -no-color -raw vault_server_address)" \
+    -var "vault_token=$(cat {{ vault_dir }}/generated_vault_init.json | jq -r .root_token)"
+
+    just _hashistack_refresh_envrc
+
+# Stop and destroy the Vault sever, Consul server, and Nomad cluster.
+hashistack_down:
+    @just _preflight
+
+    # The cluster is being destroyed, so just remove the state files rather than
+    # delete the resources as they will be automatically deleted when the VMs
+    # are deleted. This also makes destroying partial applies easier.
+    rm -f "{{ nomad_dir }}/workload-identity/terraform.tfstate"
+    rm -f "{{ nomad_dir }}/workload-identity/terraform.tfstate.backup"
+
+    terraform -chdir="{{ nomad_dir }}" init
+
+    terraform -chdir="{{ nomad_dir }}" destroy -auto-approve \
+    -var "consul_address=$(terraform -chdir="{{ consul_dir }}" output -no-color -raw consul_server_address)" \
+    -var "vault_address=$(terraform -chdir="{{ vault_dir }}" output -no-color -raw vault_server_address)"
+
+    terraform -chdir="{{ vault_dir }}" init
+    terraform -chdir="{{ vault_dir }}" destroy -auto-approve
+    terraform -chdir="{{ consul_dir }}" init
+    terraform -chdir="{{ consul_dir }}" destroy -auto-approve
+
+    just _hashistack_destroy_envrc
