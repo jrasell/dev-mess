@@ -3,7 +3,7 @@ data_dir = "/tmp/nomad-one-server-one-client/client"
 log_level            = "DEBUG"
 log_include_location = true
 enable_debug         = true
-region               = "europe-west-1"
+region               = "euw1"
 
 telemetry {
   in_memory_collection_interval = "1s"
@@ -23,4 +23,8 @@ client {
 
 ports {
   http = 5646
+}
+
+acl {
+  enabled = true
 }
