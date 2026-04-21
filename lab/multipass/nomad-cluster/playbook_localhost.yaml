@@ -19,7 +19,7 @@
         - content: |
             export NOMAD_TOKEN=00000000-0000-0000-0000-000000000000
             export NOMAD_ADDR="https://{{ hostvars[first_nomad_server]['ansible_facts']['default_ipv4']['address'] }}:4646"
-            export NOMAD_CACERT=./.tls/ca.pem
-            export NOMAD_CLIENT_CERT=./.tls/{{ first_nomad_server }}.pem
-            export NOMAD_CLIENT_KEY=./.tls/{{ first_nomad_server }}-key.pem
+            export NOMAD_CACERT={{ playbook_dir }}/.tls/ca.pem
+            export NOMAD_CLIENT_CERT={{ playbook_dir }}/.tls/{{ first_nomad_server }}.pem
+            export NOMAD_CLIENT_KEY={{ playbook_dir }}/.tls/{{ first_nomad_server }}-key.pem
           dst: "{{ playbook_dir }}/.envrc"

@@ -75,6 +75,8 @@
         - "{{ ansible_user_id }}"
 
     - role: tls
+      tls_path: ".tls"
+      tls_ca_generate: false
       tls_self_signed_generate:
         - agent-name: "{{ inventory_hostname }}"
           ip: "{{ ansible_facts['default_ipv4']['address'] }}"
@@ -84,6 +86,14 @@
       helper_file_write_content:
         - content: "bridge"
           dst: "/etc/modules-load.d/nomad.conf"
+
+    - role: consul
+      when: (consul_address | default('') | trim) != ''
+      consul_binary_version: "1.22.6"
+      consul_binary_checksum: "sha256:a760371111ff3e1f0813672b240f833077f73c13ea37e75abc223ede534100b6"
+      consul_config_dir: "/etc/consul.d/"
+      consul_data_dir: "/opt/consul/data/"
+      consul_config_template: "./templates/consul_client.hcl.j2"
 
     - role: nomad
       nomad_binary_version: "2.0.0-beta.1"

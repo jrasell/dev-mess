@@ -1,3 +1,13 @@
+variable "consul_address" { default = "" }
+variable "vault_address" { default = "" }
+
+module "ca" {
+  source = "../../shared/terraform/tls"
+
+  local_path = "${path.root}/.tls"
+  ca_create  = true
+}
+
 module "nomad_server" {
   source = "../../shared/terraform/multipass-compute"
 
@@ -21,13 +31,17 @@ module "nomad_client" {
 
 module "ansible_provision" {
   source     = "../../shared/terraform/ansible-provision"
-  depends_on = [module.nomad_server]
+  depends_on = [module.ca, module.nomad_server, module.nomad_client]
 
   ansible_inventory_path = abspath("./inventory.yaml")
   ansible_playbook_path  = abspath("./playbook_all.yaml")
+  ansible_extra_vars = compact([
+    var.consul_address != "" ? "consul_address=${var.consul_address}" : "",
+    var.vault_address != "" ? "vault_address=${var.vault_address}" : "",
+  ])
 }
 
-output "details" {
+output "msg" {
   value = <<EOH
 SSH commands:
   Nomad Servers:
@@ -49,9 +63,17 @@ Rsync commands:
     - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${ip}:/home/jrasell/
 %{endfor~}
 
-Nomad HTTP API Port Forwarding:
+Nomad HTTP API:
 %{for ip in module.nomad_server.instance_ips~}
-    - ssh -L 4646:${ip}:4646 ${ip}
+    - https://${ip}:4646
 %{endfor~}
 EOH
+}
+
+output "nomad_ca_cert_pem" {
+  value = module.ca.ca_cert_pem
+}
+
+output "nomad_server_addresses" {
+  value = module.nomad_server.instance_ips
 }

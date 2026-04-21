@@ -1,0 +1,21 @@
+log_level  = "DEBUG"
+data_dir   = "{{ consul_data_dir }}"
+datacenter = "lcy1"
+
+advertise_addr = "{{ ansible_facts["default_ipv4"]["address"] }}"
+bind_addr      = "{{ ansible_facts["default_ipv4"]["address"] }}"
+client_addr    = "{{ ansible_facts["default_ipv4"]["address"] }}"
+
+server = false
+
+retry_join = [
+  "{{ consul_address }}"
+]
+
+connect {
+  enabled = true
+}
+
+service {
+  name = "consul"
+}

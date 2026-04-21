@@ -37,6 +37,12 @@ acl {
   enabled = true
 }
 
+{% if consul_address | default('') | length > 0 %}
+consul {
+  address = "{{ ansible_facts["default_ipv4"]["address"] }}:8500"
+}
+{% endif %}
+
 ui {
   enabled =  true
 
@@ -46,3 +52,16 @@ ui {
     text_color       = "#FFFFFF"
   }
 }
+
+{% if vault_address | default('') | length > 0 %}
+vault {
+  enabled = true
+
+  default_identity {
+    aud  = ["vault.io"]
+    env  = false
+    file = true
+    ttl  = "1h"
+  }
+}
+{% endif %}
