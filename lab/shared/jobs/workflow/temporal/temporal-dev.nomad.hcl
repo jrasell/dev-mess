@@ -46,7 +46,7 @@ job "temporal-dev" {
     }
 
     service {
-      address_mode = local.address_mode
+      address_mode = local.service_address_mode
       provider     = "nomad"
       name         = "temporal-ui"
       port         = "ui"
