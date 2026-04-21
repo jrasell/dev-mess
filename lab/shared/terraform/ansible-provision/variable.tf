@@ -7,3 +7,9 @@ variable "ansible_playbook_path" {
   description = "Path to the Ansible playbook to run."
   type        = string
 }
+
+variable "ansible_extra_vars" {
+  description = "Extra variables to pass to Ansible."
+  type        = list(string)
+  default     = []
+}
