@@ -4,7 +4,7 @@ log_level            = "DEBUG"
 log_include_location = true
 enable_debug         = true
 region               = "europe-west-1"
-name                 = "server-1"
+name                 = "client-1"
 
 telemetry {
   publish_allocation_metrics = true

@@ -8,12 +8,12 @@ The authoritative region should be started and bootstrapped first.
 
 Nomad server:
 ```console
-nomad agent europe-west-1_nomad_server.hcl
+nomad agent -config europe-west-1_nomad_server.hcl
 ```
 
 Nomad client:
 ```console
-nomad agent europe-west-1_nomad_client.hcl
+nomad agent -config europe-west-1_nomad_client.hcl
 ```
 
 Bootstrap the ACLs using a pre-defined token (for dev purposes only):
@@ -27,22 +27,22 @@ started.
 
 Nomad `us-east-1` server:
 ```console
-nomad agent us-east-1_nomad_server.hcl
+nomad agent -config us-east-1_nomad_server.hcl
 ```
 
 Nomad `us-east-1` client:
 ```console
-nomad agent us-east-1_nomad_client.hcl
+nomad agent -config us-east-1_nomad_client.hcl
 ```
 
 Nomad `asia-south-1` server:
 ```console
-nomad agent asia-south-1_nomad_server.hcl
+nomad agent -config asia-south-1_nomad_server.hcl
 ```
 
 Nomad `asia-south-1` client:
 ```console
-nomad agent asia-south-1_nomad_client.hcl
+nomad agent -config asia-south-1_nomad_client.hcl
 ```
 
 The federated regions can then be joined with the authoritative region:
