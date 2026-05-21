@@ -6,5 +6,5 @@ variable "stack_name" {
 variable "stack_owner" {
   description = "An identifier for the owner, that can be useful for identification."
   type        = string
-  default     = "jrasell"
+  default     = "aimeeu"
 }

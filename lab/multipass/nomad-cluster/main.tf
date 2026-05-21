@@ -42,11 +42,11 @@ SSH commands:
 Rsync commands:
   Nomad Servers:
 %{for ip in module.nomad_server.instance_ips~}
-    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${ip}:/home/jrasell/
+    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/aimeeu/Dev/github/hashicorp/nomad ubuntu@${ip}:/home/ubuntu/
 %{endfor~}
   Nomad Client:
 %{for ip in module.nomad_client.instance_ips~}
-    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${ip}:/home/jrasell/
+    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/aimeeu/Dev/github/hashicorp/nomad ubuntu@${ip}:/home/ubuntu/
 %{endfor~}
 
 Nomad HTTP API Port Forwarding:

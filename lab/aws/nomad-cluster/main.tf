@@ -1,18 +1,17 @@
 locals {
-  stack_region  = "eu-west-2"
+  stack_region  = "us-east-2"
   stack_name    = "nomad-cluster"
-  stack_owner   = "jrasell"
+  stack_owner   = "aimeeu"
   ec2_user_data = <<EOH
 #cloud-config
 ---
 users:
   - default
-  - name: jrasell
+  - name: ubuntu
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     ssh_authorized_keys:
-      - ssh-rsa
-        AAAAB3NzaC1yc2EAAAADAQABAAABgQCh9U/cDg3ZUZMS57hfayRVWol8bI046+sbXZyRLv7eXHyg42j7H3utJ5vQE+z1Crkb4W2gXQE5cMrtVe5ee3NBP9I9cxljYZ3WMXRwInp5GmRKGBIMD0zLfoJJz+hnyRQl67mMi0s5x2CHfDbDq/N028W2XQLWydaulKg4y6GVIRf/a1Fn8YaBd6OlmPU9flpvBShSV1JU0++fk8mK2u9cJ4vue/1PBVbu55YZynk5EubhLsqpKWqDHQUsg4fE0IAyszs8FuA3NYFU0yUMAOx9Wt5oql05MSNNJfYmqZqmysdxJjfTEOdURN/3hWZnd4fbbfJq06Nh+JYrEndEIRB9SoWaD/EsSN65oTL/kHb9ofvj37pPKyzMwG82gQ8/mZI476ZOS59I9DfRW+AWQemuo4NNQlKkBIejmqz88AUM+XN4sdZVBLs1Lz3uuHmXV5bh1pIwwr7Mo9mJru3o69/cpKSTotvjgBUyEjNTGxXb12w1iiHjI8EH3q+Yn3efeu8=
+      - ssh-rsa ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII1PfYtWT3bEqNQ4DTVu9qTb2zK/ZmWM9Qty/Gxtt0BL ubuntu
 EOH
 }
 
@@ -90,11 +89,11 @@ SSH commands:
 Rsync commands:
   Nomad Servers:
 %{for ip in module.nomad_server.instance_public_ips~}
-    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${ip}:/home/jrasell/
+    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/aimeeu/Dev/github/hashicorp/nomad ubuntu@${ip}:/home/ubuntu/
 %{endfor~}
   Nomad Client:
 %{for ip in module.nomad_client.instance_public_ips~}
-    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${ip}:/home/jrasell/
+    - rsync -r --exclude 'nomad/ui/node_modules/*' /Users/aimeeu/Projects/Go/nomad ubuntu@${ip}:/home/ubuntu/
 %{endfor~}
 EOH
 }

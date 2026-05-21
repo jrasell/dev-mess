@@ -47,6 +47,7 @@ resource "null_resource" "wait_cloud-init" {
       host        = each.value
       user        = var.ansible_user
       private_key = file("~/.ssh/id_rsa")
+      agent       = false # force use of the private key
     }
     inline = ["cloud-init status --wait"]
   }

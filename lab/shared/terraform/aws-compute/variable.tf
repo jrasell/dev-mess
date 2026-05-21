@@ -11,7 +11,7 @@ variable "stack_name" {
 variable "stack_owner" {
   description = "An identifier for the owner, that can be useful for identification."
   type        = string
-  default     = "jrasell"
+  default     = "aimeeu"
 }
 
 variable "instance_count" {
@@ -23,13 +23,13 @@ variable "instance_count" {
 variable "ami_id" {
   description = "The AMI to use for the instance."
   type        = string
-  default     = "ami-03628db51da52eeaa"
+  default     = "ami-0f9f41a981329c67b" # HC-approved image
 }
 
 variable "instance_type" {
   description = "The instance type to use for the instance."
   type        = string
-  default     = "m5.xlarge"
+  default     = "t3.medium"
 }
 
 variable "subnet_id" {
@@ -66,7 +66,7 @@ variable "ebs_block_devices" {
 variable "ansible_user" {
   description = "The user Ansible uses for connectivity."
   type        = string
-  default     = "jrasell"
+  default     = "ubuntu"
 }
 
 variable "ansible_group_name" {
