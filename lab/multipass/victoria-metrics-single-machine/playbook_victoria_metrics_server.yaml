@@ -1,0 +1,25 @@
+- hosts: victoria_metrics
+  become: true
+  collections:
+    - victoriametrics.cluster
+
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
+
+    # Install the metric, logs, and trace single node cluster components.
+    - role: vmsingle
+      victoriametrics_version: "1.144.0"
+
+    - role: vlsingle
+      victoriametrics_version: "1.50.0"
+
+    - role: vtsingle
+      victoriametrics_version: "0.9.2"
