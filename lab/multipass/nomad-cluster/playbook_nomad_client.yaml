@@ -18,7 +18,7 @@
       become: true
       ansible.builtin.file:
         state: absent
-        path: "/etc/systemd/network/99-default.link"
+        path: "/usr/lib/systemd/network/99-default.link"
       when: ansible_distribution == "Ubuntu"
 
   roles:
