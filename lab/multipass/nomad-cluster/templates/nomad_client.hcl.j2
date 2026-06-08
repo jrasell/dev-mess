@@ -30,6 +30,22 @@ acl {
   enabled = true
 }
 
+plugin "raw_exec" {
+  config {
+    enabled = true
+  }
+}
+
+plugin "docker" {
+  config {
+    allow_privileged = true
+
+    volumes {
+      enabled = true
+    }
+  }
+}
+
 {% if consul_address | default('') | length > 0 %}
 consul {
   address = "{{ ansible_facts["default_ipv4"]["address"] }}:8500"
