@@ -56,9 +56,20 @@
   ansible.builtin.file:
     path: "{{ vault_data_dir }}"
     state: directory
-    mode: "0700"
+    mode: "0755"
     owner: "{{ vault_user }}"
     group: "{{ vault_group }}"
+
+- name: "create_log_file"
+  become: true
+  ansible.builtin.file:
+    path: "/var/log/vault.log"
+    state: touch
+    mode: "0644"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    modification_time: preserve
+    access_time: preserve
 
 - name: "write_config_template"
   become: true
@@ -69,3 +80,57 @@
     group: "{{ vault_group }}"
     mode: "0600"
   notify: "restart_vault"
+
+- block:
+    - name: "create_tls_directory"
+      become: true
+      ansible.builtin.file:
+        path: "{{ vault_config_dir }}/.tls"
+        owner: "{{ vault_user }}"
+        group: "{{ vault_group }}"
+        state: "directory"
+        mode: "0700"
+    - name: "write_tls_files"
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        src: "{{ item.src }}"
+        owner: "{{ vault_user }}"
+        group: "{{ vault_group }}"
+        mode: "0600"
+      loop:
+        - dest: "{{ vault_config_dir }}/.tls/ca.pem"
+          src: "{{ vault_tls_ca_cert }}"
+        - dest: "{{ vault_config_dir }}/.tls/cert.pem"
+          src: "{{ vault_tls_cert }}"
+        - dest: "{{ vault_config_dir }}/.tls/cert-key.pem"
+          src: "{{ vault_tls_cert_key }}"
+  notify: "restart_vault"
+  when: vault_tls_enabled is true
+
+- block:
+    - name: "create_consul_tls_directory"
+      become: true
+      ansible.builtin.file:
+        path: "{{ vault_config_dir }}/.consul-tls"
+        owner: "{{ vault_user }}"
+        group: "{{ vault_group }}"
+        state: "directory"
+        mode: "0700"
+    - name: "write_consul_tls_files"
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        src: "{{ item.src }}"
+        owner: "{{ vault_user }}"
+        group: "{{ vault_group }}"
+        mode: "0600"
+      loop:
+        - dest: "{{ vault_config_dir }}/.consul-tls/ca.pem"
+          src: "{{ vault_consul_tls_ca_cert }}"
+        - dest: "{{ vault_config_dir }}/.consul-tls/cert.pem"
+          src: "{{ vault_consul_tls_cert }}"
+        - dest: "{{ vault_config_dir }}/.consul-tls/cert-key.pem"
+          src: "{{ vault_consul_tls_cert_key }}"
+  notify: "restart_vault"
+  when: vault_consul_tls_enabled is true
