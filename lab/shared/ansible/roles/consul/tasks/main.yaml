@@ -69,3 +69,38 @@
     group: "{{ consul_group }}"
     mode: "0600"
   notify: "restart_consul"
+
+- block:
+    - name: "create_tls_directory"
+      become: true
+      ansible.builtin.file:
+        path: "{{ consul_config_dir }}/.tls"
+        owner: "{{ consul_user }}"
+        group: "{{ consul_group }}"
+        state: "directory"
+        mode: "0700"
+    - name: "write_tls_files"
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        src: "{{ item.src }}"
+        owner: "{{ consul_user }}"
+        group: "{{ consul_group }}"
+        mode: "0600"
+      loop:
+        - dest: "{{ consul_config_dir }}/.tls/ca.pem"
+          src: "{{ consul_tls_ca_cert }}"
+        - dest: "{{ consul_config_dir }}/.tls/cert.pem"
+          src: "{{ consul_tls_cert }}"
+        - dest: "{{ consul_config_dir }}/.tls/cert-key.pem"
+          src: "{{ consul_tls_cert_key }}"
+    - name: "create_tls_config_file"
+      become: true
+      ansible.builtin.template:
+        src: "tls.hcl.j2"
+        dest: "{{ consul_config_dir }}/tls.hcl"
+        owner: "{{ consul_user }}"
+        group: "{{ consul_group }}"
+        mode: "0600"
+  notify: "restart_consul"
+  when: consul_tls_enabled is true

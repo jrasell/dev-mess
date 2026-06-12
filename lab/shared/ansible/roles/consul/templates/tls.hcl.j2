@@ -1,0 +1,15 @@
+tls {
+  defaults {
+    ca_file   = "{{ consul_config_dir }}/.tls/ca.pem"
+    cert_file = "{{ consul_config_dir }}/.tls/cert.pem"
+    key_file  = "{{ consul_config_dir }}/.tls/cert-key.pem"
+
+    verify_incoming = false
+    verify_outgoing = true
+  }
+
+  internal_rpc {
+    verify_incoming        = true
+    verify_server_hostname = true
+  }
+}
