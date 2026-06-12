@@ -14,6 +14,11 @@ nomad_tls_ca_cert: ""
 nomad_tls_cert: ""
 nomad_tls_cert_key: ""
 
+nomad_consul_tls_enabled: false
+nomad_consul_tls_ca_cert: ""
+nomad_consul_tls_cert: ""
+nomad_consul_tls_cert_key: ""
+
 nomad_license: ""
 
 # The name of the systemd service to install for Nomad. This does not need to be

@@ -114,6 +114,33 @@
   notify: "restart_{{ nomad_service_name }}"
   when: nomad_tls_enabled is true
 
+- block:
+    - name: "create_consul_tls_directory"
+      become: true
+      ansible.builtin.file:
+        path: "{{ nomad_config_dir }}/.consul-tls"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        state: "directory"
+        mode: "0700"
+    - name: "write_consul_tls_files"
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        src: "{{ item.src }}"
+        owner: "{{ nomad_user }}"
+        group: "{{ nomad_group }}"
+        mode: "0600"
+      loop:
+        - dest: "{{ nomad_config_dir }}/.consul-tls/ca.pem"
+          src: "{{ nomad_consul_tls_ca_cert }}"
+        - dest: "{{ nomad_config_dir }}/.consul-tls/cert.pem"
+          src: "{{ nomad_consul_tls_cert }}"
+        - dest: "{{ nomad_config_dir }}/.consul-tls/cert-key.pem"
+          src: "{{ nomad_consul_tls_cert_key }}"
+  notify: "restart_{{ nomad_service_name }}"
+  when: nomad_consul_tls_enabled is true
+
 - name: "download_and_install_plugins"
   become: true
   block:
