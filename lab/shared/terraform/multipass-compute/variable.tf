@@ -1,7 +1,7 @@
 variable "instance_image" {
   description = "The Multipass image to use."
   type        = string
-  default     = "24.04"
+  default     = "26.04"
 }
 
 variable "instance_name_prefix" {
