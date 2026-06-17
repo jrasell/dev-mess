@@ -1,0 +1,3 @@
+- import_playbook: playbook_ctrl.yaml
+- import_playbook: playbook_dtpl.yaml
+- import_playbook: playbook_localhost.yaml

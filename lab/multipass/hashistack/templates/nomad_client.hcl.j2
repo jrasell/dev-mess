@@ -1,0 +1,70 @@
+data_dir   = "{{ nomad_data_dir }}"
+bind_addr  = "{{ ansible_facts['default_ipv4']['address'] }}"
+region     = "lcy1"
+plugin_dir = "{{ nomad_plugin_dir }}"
+
+log_level            = "DEBUG"
+log_include_location = true
+log_file             = "/var/log/nomad.log"
+enable_debug         = true
+
+telemetry {
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+  prometheus_metrics         = true
+}
+
+client {
+  enabled = true
+
+  server_join {
+    retry_join = [
+      {% for host in groups['hashi_ctrl'] %}
+      "{{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }}",
+      {% endfor %}
+    ]
+  }
+}
+
+acl {
+  enabled = true
+}
+
+consul {
+  address      = "{{ ansible_facts['default_ipv4']['address'] }}:8501"
+  grpc_address = "{{ ansible_facts['default_ipv4']['address'] }}:8503"
+  ssl          = true
+  token        = "{{ consul_nomad_token }}"
+
+  ca_file   = "{{ nomad_config_dir }}/.consul-tls/ca.pem"
+  cert_file = "{{ nomad_config_dir }}/.consul-tls/cert.pem"
+  key_file  = "{{ nomad_config_dir }}/.consul-tls/cert-key.pem"
+}
+
+vault {
+  enabled               = true
+  jwt_auth_backend_path = "nomad-lcy1"
+
+  default_identity {
+    aud  = ["vault.io"]
+    env  = false
+    file = true
+    ttl  = "1h"
+  }
+}
+
+plugin "raw_exec" {
+  config {
+    enabled = true
+  }
+}
+
+plugin "docker" {
+  config {
+    allow_privileged = true
+
+    volumes {
+      enabled = true
+    }
+  }
+}

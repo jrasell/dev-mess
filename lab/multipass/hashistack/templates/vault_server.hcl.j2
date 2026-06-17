@@ -1,0 +1,34 @@
+ui            = true
+cluster_addr  = "https://{{ ansible_facts["default_ipv4"]["address"] }}:8201"
+api_addr      = "https://{{ ansible_facts["default_ipv4"]["address"] }}:8200"
+disable_mlock = true
+
+log_file  = "/var/log/vault.log"
+log_level = "debug"
+
+storage "raft" {
+  path = "{{ vault_data_dir }}"
+
+  {% for host in groups['hashi_ctrl'] %}
+  retry_join {
+    leader_api_addr         = "https://{{ hostvars[host]['ansible_facts']["default_ipv4"]["address"] }}:8200"
+    leader_ca_cert_file     = "{{ vault_config_dir }}/.tls/ca.pem"
+    leader_tls_servername   = "{{ hostvars[host]['ansible_facts']["default_ipv4"]["address"] }}"
+  }
+  {% endfor %}
+}
+
+listener "tcp" {
+  address       = "{{ ansible_facts["default_ipv4"]["address"] }}:8200"
+  tls_cert_file = "{{ vault_config_dir }}/.tls/cert.pem"
+  tls_key_file  = "{{ vault_config_dir }}/.tls/cert-key.pem"
+}
+
+service_registration "consul" {
+  address       = "{{ ansible_facts['default_ipv4']['address'] }}:8501"
+  scheme        = "https"
+  token         = "{{ vault_consul_token }}"
+  tls_ca_file   = "{{ vault_config_dir }}/.consul-tls/ca.pem"
+  tls_cert_file = "{{ vault_config_dir }}/.consul-tls/cert.pem"
+  tls_key_file  = "{{ vault_config_dir }}/.consul-tls/cert-key.pem"
+}

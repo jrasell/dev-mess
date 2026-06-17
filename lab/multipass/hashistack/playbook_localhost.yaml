@@ -1,0 +1,253 @@
+# Delegate gathering of facts, so we can run this against the localhost only but
+# collect the relevant data from the Vault instance to populate our environment.
+- hosts: all
+  tasks:
+    - name: "delegate_fact_gathering"
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['hashi_ctrl'] }}"
+
+- hosts: localhost
+  vars:
+    first_ctrl_host: "{{ groups['hashi_ctrl'] | first }}"
+
+  tasks:
+    - name: "vault_init_unseal"
+      ansible.builtin.command:
+        cmd: >-
+          {{ playbook_dir }}/scripts/init_unseal.sh
+          {% for host in groups['hashi_ctrl'] %}
+          --addr https://{{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }}:8200
+          {% endfor %}
+        chdir: "{{ playbook_dir }}"
+      environment:
+        VAULT_CACERT: "{{ playbook_dir }}/.tls/ca.pem"
+        VAULT_CLIENT_CERT: ""
+        VAULT_CLIENT_KEY: ""
+
+    - name: "read_vault_init_output"
+      ansible.builtin.slurp:
+        src: "{{ playbook_dir }}/generated_vault_init.json"
+      register: vault_init_json
+
+    - name: "consul_acl_bootstrap"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/bootstrap"
+        method: PUT
+        body_format: json
+        body:
+          BootstrapSecret: "{{ consul_bootstrap_token }}"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 403]
+      register: consul_bootstrap_result
+
+    - name: "consul_acl_bootstrap_info"
+      ansible.builtin.debug:
+        msg: >-
+          {{ 'Consul ACL already bootstrapped.'
+          if consul_bootstrap_result.status == 403
+          else 'Consul ACL bootstrapped with management token.' }}
+
+    - name: "consul_read_vault_policy"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/policy/name/vault-service"
+        method: GET
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 404]
+      register: consul_vault_policy_lookup
+
+    - name: "consul_create_vault_policy"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/policy"
+        method: PUT
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        body_format: json
+        body:
+          Name: "vault-service"
+          Description: "Policy for Vault service registration"
+          Rules: |
+            service "vault" {
+              policy = "write"
+            }
+            agent_prefix "" {
+              policy = "read"
+            }
+            session_prefix "" {
+              policy = "write"
+            }
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 500]
+      when: consul_vault_policy_lookup.status == 404
+
+    - name: "consul_create_vault_token"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/token"
+        method: PUT
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        body_format: json
+        body:
+          SecretID: "{{ consul_vault_token }}"
+          Description: "Vault service registration token"
+          Policies:
+            - Name: "vault-service"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 500]
+
+    - name: "consul_read_nomad_policy"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/policy/name/nomad-service"
+        method: GET
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 404]
+      register: consul_nomad_policy_lookup
+
+    - name: "consul_create_nomad_policy"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/policy"
+        method: PUT
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        body_format: json
+        body:
+          Name: "nomad-service"
+          Description: "Policy for Nomad service registration and Consul integration"
+          Rules: |
+            agent_prefix "" {
+              policy = "read"
+            }
+            node_prefix "" {
+              policy = "read"
+            }
+            service_prefix "" {
+              policy = "write"
+            }
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 500]
+      when: consul_nomad_policy_lookup.status == 404
+
+    - name: "consul_create_nomad_token"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/token"
+        method: PUT
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        body_format: json
+        body:
+          SecretID: "{{ consul_nomad_token }}"
+          Description: "Nomad service registration token"
+          Policies:
+            - Name: "nomad-service"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 500]
+
+    - name: "consul_read_client_policy"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/policy/name/consul-client"
+        method: GET
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 404]
+      register: consul_client_policy_lookup
+
+    - name: "consul_create_client_policy"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/policy"
+        method: PUT
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        body_format: json
+        body:
+          Name: "consul-client"
+          Description: "Policy for Consul client agents"
+          Rules: |
+            node_prefix "" {
+              policy = "write"
+            }
+            service_prefix "" {
+              policy = "read"
+            }
+            agent_prefix "" {
+              policy = "read"
+            }
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 500]
+      when: consul_client_policy_lookup.status == 404
+
+    - name: "consul_create_client_token"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501/v1/acl/token"
+        method: PUT
+        headers:
+          X-Consul-Token: "{{ consul_bootstrap_token }}"
+        body_format: json
+        body:
+          SecretID: "{{ consul_client_token }}"
+          Description: "Consul client agent token"
+          Policies:
+            - Name: "consul-client"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/consul-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 500]
+
+    - name: "nomad_acl_bootstrap"
+      ansible.builtin.uri:
+        url: "https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:4646/v1/acl/bootstrap"
+        method: POST
+        body_format: json
+        body:
+          BootstrapSecret: "{{ nomad_bootstrap_token }}"
+        ca_path: "{{ playbook_dir }}/.tls/ca.pem"
+        client_cert: "{{ playbook_dir }}/.tls/nomad-{{ first_ctrl_host }}.pem"
+        client_key: "{{ playbook_dir }}/.tls/nomad-{{ first_ctrl_host }}-key.pem"
+        status_code: [200, 400, 500]
+      register: nomad_bootstrap_result
+
+    - name: "nomad_acl_bootstrap_info"
+      ansible.builtin.debug:
+        msg: >-
+          {{ 'Nomad ACL already bootstrapped.'
+          if nomad_bootstrap_result.status != 200
+          else 'Nomad ACL bootstrapped with management token.' }}
+
+    - name: "write_envrc"
+      vars:
+        vault_init: "{{ vault_init_json.content | b64decode | from_json }}"
+      ansible.builtin.copy:
+        content: |
+          export VAULT_ADDR=https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8200
+          export VAULT_CACERT={{ playbook_dir }}/.tls/ca.pem
+          export VAULT_TOKEN={{ vault_init.root_token }}
+          export CONSUL_HTTP_ADDR=https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:8501
+          export CONSUL_CACERT={{ playbook_dir }}/.tls/ca.pem
+          export CONSUL_HTTP_TOKEN={{ consul_bootstrap_token }}
+          export NOMAD_ADDR=https://{{ hostvars[first_ctrl_host]['ansible_facts']['default_ipv4']['address'] }}:4646
+          export NOMAD_CACERT={{ playbook_dir }}/.tls/ca.pem
+          export NOMAD_TOKEN={{ nomad_bootstrap_token }}
+        dest: "{{ playbook_dir }}/.envrc"

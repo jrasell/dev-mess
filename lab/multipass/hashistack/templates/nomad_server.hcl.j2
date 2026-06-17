@@ -1,0 +1,71 @@
+data_dir   = "{{ nomad_data_dir }}"
+bind_addr  = "{{ ansible_facts["default_ipv4"]["address"] }}"
+region     = "lcy1"
+
+log_level            = "DEBUG"
+log_include_location = true
+log_file             = "/var/log/nomad.log"
+enable_debug         = true
+
+telemetry {
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+  prometheus_metrics         = true
+}
+
+server {
+  enabled          = true
+  bootstrap_expect = {{ groups['hashi_ctrl'] | length }}
+
+  server_join {
+    retry_join = [
+      {% for host in groups['hashi_ctrl'] %}
+      "{{ hostvars[host]['ansible_facts']["default_ipv4"]["address"] }}",
+      {% endfor %}
+    ]
+  }
+
+  raft_logstore {
+    backend = "wal"
+    wal {
+      segment_size_mb = 64
+    }
+  }
+}
+
+acl {
+  enabled = true
+}
+
+consul {
+  address      = "{{ ansible_facts['default_ipv4']['address'] }}:8501"
+  grpc_address = "{{ ansible_facts['default_ipv4']['address'] }}:8503"
+  ssl          = true
+  token        = "{{ nomad_consul_token }}"
+
+  ca_file   = "{{ nomad_config_dir }}/.consul-tls/ca.pem"
+  cert_file = "{{ nomad_config_dir }}/.consul-tls/cert.pem"
+  key_file  = "{{ nomad_config_dir }}/.consul-tls/cert-key.pem"
+}
+
+vault {
+  enabled               = true
+  jwt_auth_backend_path = "nomad-lcy1"
+
+  default_identity {
+    aud  = ["vault.io"]
+    env  = false
+    file = true
+    ttl  = "1h"
+  }
+}
+
+ui {
+  enabled = true
+
+  label {
+    text             = "local lcy1"
+    background_color = "purple"
+    text_color       = "#FFFFFF"
+  }
+}
