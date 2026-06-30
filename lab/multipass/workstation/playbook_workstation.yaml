@@ -11,14 +11,14 @@
 
   roles:
     - role: common
-      common_hostname: "event-horizon"
+      common_hostname: "nebuchadnezzar"
       common_apt_packages: ["jq", "net-tools", "unzip"]
 
     - role: gantsign.golang
       golang_gopath: "{{ ansible_user_dir }}/go"
-      golang_version: "1.25.5"
+      golang_version: "1.26.4"
       golang_mirror: "https://dl.google.com/go/"
-      golang_redis_sha256sum: "b00b694903d126c588c378e72d3545549935d3982635ba3f7a964c9fa23fe3b9"
+      golang_redis_sha256sum: "ef758ae7c6cf9267c9c0ef080b8965f453d89ab2d25d9eb22de4405925238768"
 
     - role: cni
 

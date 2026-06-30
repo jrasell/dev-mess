@@ -18,6 +18,6 @@ SSH commands:
   Workstation: ssh ${module.workstation.instance_ips[0]}
 
 Rsync commands:
-  Workstation: rsync -r --exclude 'nomad/ui/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${module.workstation.instance_ips[0]}:/home/jrasell/
+  Workstation: rsync -r --exclude '*/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${module.workstation.instance_ips[0]}:/home/jrasell/
 EOH
 }
