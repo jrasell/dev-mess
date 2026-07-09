@@ -16,6 +16,16 @@ variable "network_mode" {
   default     = "bridge"
 }
 
+variable "ui_env_config_template" {
+  description = "The template for the Kafka UI environment configuration"
+  type        = string
+  default     = <<-EOT
+KAFKA_CLUSTERS_0_NAME=dev
+KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS={{- range $i, $s := nomadService "kafka-broker-external" -}}{{- if gt $i 0 -}},{{- end -}}{{ $s.Address }}:{{ $s.Port }}{{- end }}
+SERVER_PORT=8080
+EOT
+}
+
 job "kafka-ui" {
   type        = "service"
   node_pool   = var.node_pool
@@ -48,12 +58,7 @@ job "kafka-ui" {
         destination = "local/kafka-ui.env"
         env         = true
         change_mode = "restart"
-
-        data = <<-EOT
-KAFKA_CLUSTERS_0_NAME=dev
-KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS={{- range $i, $s := nomadService "kafka-broker-external" -}}{{- if gt $i 0 -}},{{- end -}}{{ $s.Address }}:{{ $s.Port }}{{- end }}
-SERVER_PORT=8080
-EOT
+        data        = var.ui_env_config_template
       }
 
       resources {

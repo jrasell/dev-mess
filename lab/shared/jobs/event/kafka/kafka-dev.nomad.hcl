@@ -58,7 +58,7 @@ job "kafka-dev" {
       driver = "docker"
 
       config {
-        image = "apache/kafka:4.0.2"
+        image = "apache/kafka:4.3.1"
       }
 
       env {
