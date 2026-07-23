@@ -57,6 +57,16 @@ function setup_ghostty() {
   cp .config/ghostty/config "$HOME"/.config/ghostty/config
 }
 
+function setup_starship() {
+    brew install starship
+    cp .config/starship.toml "$HOME"/.config/starship.toml
+}
+
+function install_brew_pkgs()  {
+    brew install git-delta
+    brew install ripgrep
+}
+
 setup_zsh
 install_asdf_plugins
 install_go_packages
@@ -64,3 +74,5 @@ install_rust_packages
 install_helix_config_files
 install_zed_config_files
 setup_ghostty
+setup_starship
+install_brew_pkgs
