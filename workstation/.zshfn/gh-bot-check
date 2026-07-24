@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# gh-bot-check.sh — assess whether a GitHub user looks like a bot
+# Usage: ./gh-bot-check.sh <github-username> [--days <N>]
+#
+# Requires: gh (GitHub CLI), jq
+
+set -euo pipefail
+
+# Default to the last 10 days which is essentially two working weeks.
+DAYS=10
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 <github-username> [--days <N>]"
+  exit 1
+fi
+
+local user="$1"
+shift
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --days)
+      DAYS="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      exit 1
+      ;;
+  esac
+done
+
+SINCE=$(date -u -v -"${DAYS}"d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u --date="${DAYS} days ago" +"%Y-%m-%dT%H:%M:%SZ")
+
+echo "-------------------------------------------------------------------------"
+echo "                  Bot-signal check for: @${user}"
+echo "               Window: last ${DAYS} days (since ${SINCE})"
+echo "-------------------------------------------------------------------------"
+
+echo ""
+echo "PR activity (last ${DAYS} days):"
+
+# Search for all PRs (open + closed + merged) authored by the user in the
+# window. The "gh search prs" command returns up to 1000 results; we page until
+# exhausted.
+fetch_prs() {
+  local all="[]"
+  while true; do
+    local chunk
+    chunk=$(gh search prs \
+      --author "${user}" \
+      --created ">=${SINCE%T*}" \
+      --json "number,repository,createdAt,state,title" \
+      --limit 100 \
+      2>/dev/null || echo "[]")
+    all=$(echo "$all $chunk" | jq -s 'add')
+    # gh search prs doesn't support --page; we rely on --limit 100 giving us
+    # all matches because the search API caps at 1000 results.
+    break
+  done
+  echo "$all"
+}
+
+ALL_PRS=$(fetch_prs)
+OPEN_PRS=$(echo "$ALL_PRS" | jq '[.[] | select(.state == "open")]')
+CLOSED_PRS=$(echo "$ALL_PRS" | jq '[.[] | select(.state == "closed")]')
+MERGED_PRS=$(echo "$ALL_PRS" | jq '[.[] | select(.state == "merged")]')
+
+OPEN_COUNT=$(echo "$OPEN_PRS"     | jq 'length')
+CLOSED_COUNT=$(echo "$CLOSED_PRS" | jq 'length')
+MERGED_COUNT=$(echo "$MERGED_PRS" | jq 'length')
+
+echo "  Open PRs     : ${OPEN_COUNT}"
+echo "  Closed PRs   : ${CLOSED_COUNT}  ← unmerged-closed (potential spam signal)"
+echo "  Merged PRs   : ${MERGED_COUNT}"
+
+TOTAL_COUNT=$(( OPEN_COUNT + CLOSED_COUNT + MERGED_COUNT ))
+echo "  Total PRs    : ${TOTAL_COUNT}"
+
+# Unique repos the PRs were raised in
+UNIQUE_REPOS=$(echo "$ALL_PRS" | jq '[.[].repository.nameWithOwner] | unique | length')
+echo "  Unique repos : ${UNIQUE_REPOS}  ← high spread across repos is a bot signal"
+
+if [[ "$UNIQUE_REPOS" -gt 0 ]]; then
+  echo ""
+  echo "  Repos targeted:"
+  echo "$ALL_PRS" \
+    | jq -r '[.[].repository.nameWithOwner] | group_by(.) | map({repo: .[0], count: length}) | sort_by(-.count)[] | "    \(.count)x  \(.repo)"'
+fi
+
+
+echo ""
+echo "Repos created (last ${DAYS} days):"
+
+REPOS=$(gh api \
+  --paginate \
+  "users/${user}/repos?sort=created&direction=desc&per_page=100" \
+  2>/dev/null | jq "[.[] | select(.created_at >= \"${SINCE}\")]")
+REPOS_CREATED=$(echo "$REPOS" | jq 'length')
+echo "  Repos created: ${REPOS_CREATED}"
+if [[ "$REPOS_CREATED" -gt 0 ]]; then
+  echo "$REPOS" | jq -r '.[] | "    \(.created_at)  \(.full_name)"'
+fi
+
+echo ""
+echo "Bot-signal summary:"
+
+SIGNALS=0
+
+if [[ "$TOTAL_COUNT" -ge 20 ]]; then
+  echo "  [!] High PR volume in window (${TOTAL_COUNT} PRs in ${DAYS} days)"
+  (( SIGNALS++ )) || true
+fi
+
+if [[ "$UNIQUE_REPOS" -ge 10 ]]; then
+  echo "  [!] PRs spread across many repos (${UNIQUE_REPOS} unique repos)"
+  (( SIGNALS++ )) || true
+fi
+
+if [[ "$CLOSED_COUNT" -ge 5 ]]; then
+  echo "  [!] Many unmerged-closed PRs (${CLOSED_COUNT}) — possible spam/rejected automation"
+  (( SIGNALS++ )) || true
+fi
+
+if [[ "$REPOS_CREATED" -ge 5 ]]; then
+  echo "  [!] Many repos created recently (${REPOS_CREATED} in ${DAYS} days)"
+  (( SIGNALS++ )) || true
+fi
+
+echo ""
+
+if [[ "$SIGNALS" -eq 0 ]]; then
+  echo "  ✓  No bot signals detected (${SIGNALS}/4 flags)"
+elif [[ "$SIGNALS" -le 2 ]]; then
+  echo "  ⚠  Low/Medium bot-signal score: ${SIGNALS}/4 flags"
+else
+  echo "  ✗  High bot-signal score: ${SIGNALS}/4 flags — likely automated account"
+fi
