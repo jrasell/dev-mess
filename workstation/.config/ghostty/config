@@ -8,3 +8,9 @@ scrollback-limit     = 4294967295
 selection-foreground = "000000"
 selection-background = "a738ac"
 split-divider-color  = "a738ac"
+
+# macOS specific keybinds.
+macos-option-as-alt  = true
+keybind              = alt+3=text:#
+keybind              = alt+left=esc:b
+keybind              = alt+right=esc:f
