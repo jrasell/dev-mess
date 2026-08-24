@@ -5,31 +5,10 @@ function setup_zsh() {
   cp -r .zshfn "$HOME"/.zshfn
 }
 
-function install_asdf_plugins() {
-
-  # Install and globally set Golang.
-  asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
-  asdf install golang 1.24.2
-  asdf set -u golang 1.24.2
-
-  # Install and globally set Terraform.
-  asdf plugin add terraform https://github.com/asdf-community/asdf-hashicorp.git
-  asdf install terraform 1.11.4
-  asdf set -u terraform 1.11.4
-
-  # Install and globally set Consul.
-  asdf plugin add consul https://github.com/asdf-community/asdf-hashicorp.git
-  asdf install consul 1.20.5
-  asdf set -u consul 1.20.5
-
-  # Install and globally set NodeJS and Yarn.
-  asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-  asdf install nodejs 20.19.1
-  asdf set -u nodejs 20.19.1
-
-  asdf plugin-add yarn
-  asdf install yarn 1.22.22
-  asdf set -u yarn 1.22.22
+function install_mise() {
+    curl https://mise.run | sh
+    cp .config/mise/config.toml "$HOME"/.config/mise/config.toml
+    mise bootstrap
 }
 
 function install_go_packages() {
@@ -62,17 +41,11 @@ function setup_starship() {
     cp .config/starship.toml "$HOME"/.config/starship.toml
 }
 
-function install_brew_pkgs()  {
-    brew install git-delta
-    brew install ripgrep
-}
-
 setup_zsh
-install_asdf_plugins
+install_mise
 install_go_packages
 install_rust_packages
 install_helix_config_files
 install_zed_config_files
 setup_ghostty
 setup_starship
-install_brew_pkgs
