@@ -1,0 +1,5 @@
+function go-linux-container() {
+  local go_version="${1:-1.27.1}"
+  project_name=$(basename "$(pwd)")
+  podman run -it --rm -v "$PWD":/usr/src/${project_name} -w /usr/src/${project_name} "docker.io/library/golang:${go_version}-trixie" /bin/bash
+}
