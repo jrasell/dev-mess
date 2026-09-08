@@ -89,7 +89,7 @@ job "nmd-srv-cell-dev" {
       driver = "docker"
 
       config {
-        image = "hashicorp/nomad:2.0.4"
+        image = "hashicorp/nomad:2.0.5"
         ports = ["http", "rpc", "serf"]
         args  = [
           "agent",
@@ -119,6 +119,14 @@ server {
     {{- range nomadService "${local.job_id}-serf" }}
     "{{ .Address}}:{{ .Port }}",{{- end }}
     ]
+  }
+}
+
+ui {
+  enabled =  true
+
+  label {
+    text = "${var.nomad_agent_region}"
   }
 }
 EOH
