@@ -7,6 +7,7 @@ function setup_zsh() {
 
 function install_mise() {
     curl https://mise.run | sh
+    mkdir .config/mise
     cp .config/mise/config.toml "$HOME"/.config/mise/config.toml
     mise bootstrap
 }
@@ -28,6 +29,7 @@ function install_helix_config_files() {
 }
 
 function install_zed_config_files() {
+  mkdir .config/zed
   cp .config/zed/settings.json "$HOME"/.config/zed/settings.json
 }
 
