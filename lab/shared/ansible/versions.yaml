@@ -1,0 +1,20 @@
+# This file is used to define the default versions of various software components used in lab
+# environments. Playbooks can import this file, so changes are not needed to each playbook when a
+# version is updated. When a playbook needs to override a version, it can do so by defining the
+# variable in the playbook itself.
+
+default_golang_version: "1.27.1"
+default_golang_linux_arm64_sha256sum: "3450b45a3f9ee8568792736a5c5e70a1f2e9b36c35a8f74958c03e51d7d92bec"
+default_golang_linux_amd64_sha256sum: "63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445"
+
+default_nomad_version: "2.0.6"
+default_nomad_linux_arm64_checksum: "sha256:6ccc4c25ec0b6b71c30af4df7ae3dfb3f7a0a05173555f94be452d072100cc52"
+default_nomad_linux_amd64_checksum: "sha256:c6da734081a41d51cadf15ec880d5eab0313093a29d2ee0984ca5ae1cdf867ec"
+
+default_vault_version: "2.1.0"
+default_vault_linux_arm64_checksum: "sha256:319b3eb7b0c2ad218453f5d1af5c23cac81a024db3a07ccd2494ecd31f2090c3"
+default_vault_linux_amd64_checksum: "sha256:08e8a13d29d20c5e28ef5e2c187bf3a2e84712a43615de1b3d24701ad9aab972"
+
+default_consul_version: "2.0.3"
+default_consul_linux_arm64_checksum: "sha256:7551d8f07cbfb633d260fe27a9f7144ce08f1cb964e31e15788309dfb6c2fda5"
+default_consul_linux_amd64_checksum: "sha256:08e8a13d29d20c5e28ef5e2c187bf3a2e84712a43615de1b3d24701ad9aab972"

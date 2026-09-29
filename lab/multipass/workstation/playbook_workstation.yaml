@@ -2,6 +2,8 @@
   connection: local
 
 - hosts: workstation
+  vars_files:
+    - "../../shared/ansible/versions.yaml"
 
   # Variables that need to be changed, depending on who is running the playbook.
   vars:
@@ -15,10 +17,10 @@
       common_apt_packages: ["jq", "net-tools", "unzip"]
 
     - role: gantsign.golang
-      golang_gopath: "{{ ansible_user_dir }}/go"
-      golang_version: "1.26.4"
+      golang_gopath: "/home/{{ ansible_user_id }}/go"
+      golang_version: "{{ default_golang_version }}"
       golang_mirror: "https://dl.google.com/go/"
-      golang_redis_sha256sum: "ef758ae7c6cf9267c9c0ef080b8965f453d89ab2d25d9eb22de4405925238768"
+      golang_redis_sha256sum: "{{ default_golang_linux_arm64_sha256sum }}"
 
     - role: cni
 

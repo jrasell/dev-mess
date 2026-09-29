@@ -7,6 +7,9 @@
       loop: "{{ groups['hashi_ctrl'] }}"
 
 - hosts: hashi_ctrl
+  vars_files:
+    - "../../shared/ansible/versions.yaml"
+
   roles:
     - role: common
       common_hostname: "{{ inventory_hostname }}"
@@ -32,8 +35,8 @@
           dns: "server.lcy1.nomad"
 
     - role: consul
-      consul_binary_version: "2.0.0"
-      consul_binary_checksum: "sha256:caea9d634b18ef137b0e62adac5dd14407cd942092c2c6281b70edd90b86d5e2"
+      consul_binary_version: "{{ default_consul_version }}"
+      consul_binary_checksum: "{{ default_consul_linux_arm64_checksum }}"
       consul_config_template: "./templates/consul_server.hcl.j2"
       consul_tls_enabled: true
       consul_tls_ca_cert: "./.tls/ca.pem"
@@ -41,8 +44,8 @@
       consul_tls_cert_key: "./.tls/consul-{{ inventory_hostname }}-key.pem"
 
     - role: vault
-      vault_binary_version: "2.0.0"
-      vault_binary_checksum: "sha256:5f04207fd0fbabbb8c6cca494fdee96f81bb0a82e1176670649e1aeeaadf0281"
+      vault_binary_version: "{{ default_vault_version }}"
+      vault_binary_checksum: "{{ default_vault_linux_arm64_checksum }}"
       vault_config_dir: "/etc/vault.d/"
       vault_data_dir: "/opt/vault/data/"
       vault_config_template: "./templates/vault_server.hcl.j2"
@@ -57,8 +60,8 @@
       vault_consul_token: "{{ consul_vault_token }}"
 
     - role: nomad
-      nomad_binary_version: "2.0.4"
-      nomad_binary_checksum: "sha256:406354fcc7cb77d6169cdfec13dc15cd440dd6486f88d10d28c1d3b17a254bea"
+      nomad_binary_version: "{{ default_nomad_version }}"
+      nomad_binary_checksum: "{{ default_nomad_linux_arm64_checksum }}"
       nomad_config_template: "./templates/nomad_server.hcl.j2"
       nomad_tls_enabled: true
       nomad_tls_ca_cert: "./.tls/ca.pem"

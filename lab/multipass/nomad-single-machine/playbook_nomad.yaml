@@ -1,4 +1,7 @@
 - hosts: nomad
+  vars_files:
+    - "../../shared/ansible/versions.yaml"
+
   roles:
     - role: common
       common_hostname: "{{ inventory_hostname }}"
@@ -46,8 +49,8 @@
           dns: "client.lcy1.nomad"
 
     - role: nomad
-      nomad_binary_version: "2.0.4"
-      nomad_binary_checksum: "sha256:406354fcc7cb77d6169cdfec13dc15cd440dd6486f88d10d28c1d3b17a254bea"
+      nomad_binary_version: "{{ default_nomad_version }}"
+      nomad_binary_checksum: "{{ default_nomad_linux_arm64_checksum }}"
       nomad_config_dir: "/etc/nomad-server.d/"
       nomad_data_dir: "/opt/nomad-server/data/"
       nomad_service_name: "nomad-server"
@@ -59,8 +62,8 @@
       nomad_tls_cert_key: "./.tls/{{ inventory_hostname }}-server-key.pem"
 
     - role: nomad
-      nomad_binary_version: "2.0.4"
-      nomad_binary_checksum: "sha256:406354fcc7cb77d6169cdfec13dc15cd440dd6486f88d10d28c1d3b17a254bea"
+      nomad_binary_version: "{{ default_nomad_version }}"
+      nomad_binary_checksum: "{{ default_nomad_linux_arm64_checksum }}"
       nomad_config_dir: "/etc/nomad-client.d/"
       nomad_data_dir: "/opt/nomad-client/data/"
       nomad_service_name: "nomad-client"

@@ -1,6 +1,9 @@
 # Delegate gathering of facts, so we can run this playbook with a limit when
 # performing updates that require control of the Nomad process restart.
 - hosts: all
+  vars_files:
+    - "../../shared/ansible/versions.yaml"
+
   tasks:
     - name: "delegate_fact_gathering"
       ansible.builtin.setup:
@@ -22,9 +25,9 @@
 
     - role: gantsign.golang
       golang_gopath: "/home/{{ ansible_user_id }}/go"
-      golang_version: "1.25.5"
+      golang_version: "{{ default_golang_version }}"
       golang_mirror: "https://dl.google.com/go/"
-      golang_redis_sha256sum: "b00b694903d126c588c378e72d3545549935d3982635ba3f7a964c9fa23fe3b9"
+      golang_redis_sha256sum: "{{ default_golang_linux_arm64_sha256sum }}"
 
     - role: tls
       tls_self_signed_generate:
@@ -33,8 +36,8 @@
           dns: "server.lcy1.nomad"
 
     - role: nomad
-      nomad_binary_version: "2.0.4"
-      nomad_binary_checksum: "sha256:406354fcc7cb77d6169cdfec13dc15cd440dd6486f88d10d28c1d3b17a254bea"
+      nomad_binary_version: "{{ default_nomad_version }}"
+      nomad_binary_checksum: "{{ default_nomad_linux_arm64_checksum }}"
       nomad_config_template: "./templates/nomad_server.hcl.j2"
       nomad_region: "lcy1"
       nomad_tls_enabled: true
