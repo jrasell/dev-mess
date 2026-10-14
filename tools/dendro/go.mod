@@ -1,10 +1,12 @@
-module github.com/jrasell/dev-mess/tools/gmd
+module github.com/jrasell/dev-mess/tools/dendro
 
 go 1.24.0
 
 require (
+	github.com/BurntSushi/toml v1.5.0
 	github.com/pterm/pterm v0.12.83
 	github.com/urfave/cli/v3 v3.8.0
+	go.uber.org/zap v1.27.1
 	golang.org/x/mod v0.32.0
 )
 
@@ -18,6 +20,7 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.20 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/term v0.40.0 // indirect
 	golang.org/x/text v0.34.0 // indirect

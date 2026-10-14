@@ -1,0 +1,8 @@
+[source]
+repository = "git@github.com:hashicorp/nomad.git"
+branches   = ["main", "release/2.0.x"]
+go_mods    = ["go.mod", "jobspec2/go.mod", "api/go.mod", "tools/go.mod"]
+
+[log]
+level  = "info"
+console = false
