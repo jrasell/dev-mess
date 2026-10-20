@@ -56,3 +56,39 @@ variable "ansible_group_name" {
   type        = string
   default     = "default"
 }
+
+variable "instance_bridged" {
+  description = "Whether to add a bridged network interface (--bridged)."
+  type        = bool
+  default     = false
+}
+
+variable "instance_networks" {
+  description = "List of network specifications to add to the instance (e.g. ['name=en0,mode=auto'])."
+  type        = list(string)
+  default     = []
+}
+
+variable "instance_zone_map" {
+  description = "Explicit mapping of instance index to zone (e.g. { \"0\" = \"zone1\", \"1\" = \"zone2\" })."
+  type        = map(string)
+  default     = {}
+}
+
+variable "instance_zones" {
+  description = "A list of zones to randomly assign instances across."
+  type        = list(string)
+  default     = ["zone1", "zone2", "zone3"]
+}
+
+variable "instance_mounts" {
+  description = "List of directory mounts in 'source:target' or 'source' format."
+  type        = list(string)
+  default     = []
+}
+
+variable "instance_timeout" {
+  description = "Maximum time in seconds to wait for the launch command to complete."
+  type        = number
+  default     = 300
+}

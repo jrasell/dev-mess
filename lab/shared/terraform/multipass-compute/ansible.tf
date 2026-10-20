@@ -12,6 +12,6 @@ resource "ansible_host" "host" {
   groups   = [ansible_group.group.name]
 
   variables = {
-    ansible_host = data.multipass_instance.instance[each.key].ipv4
+    ansible_host = data.external.instance[each.key].result.ipv4
   }
 }
