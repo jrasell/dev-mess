@@ -1,0 +1,7 @@
+patroni_version: "4.1.5"
+patroni_venv_dir: "/opt/patroni"
+patroni_config_dir: "/etc/patroni"
+patroni_config_template: ""
+patroni_scope: "postgres-ha"
+patroni_superuser_password: "patronipass"
+patroni_replication_password: "replicapass"

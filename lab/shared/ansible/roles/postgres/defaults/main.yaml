@@ -1,0 +1,11 @@
+postgres_version: 18
+postgres_data_dir: "/var/lib/postgresql/{{ postgres_version }}/main"
+postgres_bin_dir: "/usr/lib/postgresql/{{ postgres_version }}/bin"
+
+# Prevent the postgresql apt postinst script from running initdb automatically
+# which is required when using tools like Patroni to manage the cluster.
+postgres_suppress_initdb: false
+
+# Whether to start the PostgreSQL service after installation. If set to false,
+# the service will be stopped and disabled.
+postgres_start_service: true

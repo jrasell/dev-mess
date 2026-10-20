@@ -1,0 +1,31 @@
+# Gather facts from all nodes first so that etcd and Patroni config templates
+# can reference the IPs of every peer in the group.
+- hosts: all
+  tasks:
+    - name: "delegate_fact_gathering"
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['postgres'] }}"
+
+- hosts: postgres
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "jq"
+        - "net-tools"
+        - "python3-pip"
+        - "unzip"
+
+    - role: postgres
+      postgres_suppress_initdb: true
+      postgres_start_service: false
+
+    - role: etcd
+      etcd_config_template: "./templates/etcd.conf.yaml.j2"
+
+    - role: patroni
+      patroni_scope: "fwJb8hgxjAWZXrawvqNDiA"
+      patroni_config_template: "./templates/patroni.yaml.j2"

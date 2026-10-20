@@ -1,0 +1,10 @@
+- name: "reload_systemd"
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: "restart_patroni"
+  become: true
+  ansible.builtin.systemd:
+    name: "patroni"
+    state: restarted

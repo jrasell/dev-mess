@@ -1,0 +1,61 @@
+scope: {{ patroni_scope }}
+namespace: /db/
+name: {{ inventory_hostname }}
+
+etcd3:
+  hosts:
+{% for host in groups['postgres'] %}
+    - {{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }}:2379
+{% endfor %}
+
+restapi:
+  listen: {{ ansible_facts["default_ipv4"]["address"] }}:8008
+  connect_address: {{ ansible_facts["default_ipv4"]["address"] }}:8008
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: false
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_wal_senders: 10
+        max_replication_slots: 10
+        wal_log_hints: "on"
+
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+
+  pg_hba:
+    - host replication replicator 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+
+postgresql:
+  listen: {{ ansible_facts["default_ipv4"]["address"] }}:5432
+  connect_address: {{ ansible_facts["default_ipv4"]["address"] }}:5432
+  data_dir: {{ postgres_data_dir }}
+  bin_dir: {{ postgres_bin_dir }}
+  pgpass: /tmp/pgpass0
+  authentication:
+    replication:
+      username: replicator
+      password: {{ patroni_replication_password }}
+    superuser:
+      username: postgres
+      password: {{ patroni_superuser_password }}
+    rewind:
+      username: rewind_user
+      password: {{ patroni_superuser_password }}
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false

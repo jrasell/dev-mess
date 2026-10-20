@@ -1,0 +1,97 @@
+- name: "install_dependencies"
+  become: true
+  ansible.builtin.apt:
+    name:
+      - "curl"
+      - "gnupg"
+      - "lsb-release"
+    state: present
+    update_cache: true
+
+- name: "create_keyrings_dir"
+  become: true
+  ansible.builtin.file:
+    path: "/etc/apt/keyrings"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: "add_pgdg_signing_key"
+  become: true
+  ansible.builtin.get_url:
+    url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+    dest: "/etc/apt/keyrings/pgdg.asc"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: "add_pgdg_repository"
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: "pgdg"
+
+# postgresql-common ships createcluster.conf, so it must be installed before the
+# setting is changed and before the server package triggers the main cluster.
+- name: "install_postgresql_common"
+  become: true
+  when: postgres_suppress_initdb
+  ansible.builtin.apt:
+    name: "postgresql-common"
+    state: present
+    update_cache: true
+
+- name: "suppress_apt_initdb"
+  become: true
+  when: postgres_suppress_initdb
+  ansible.builtin.lineinfile:
+    path: "/etc/postgresql-common/createcluster.conf"
+    regexp: "^#?create_main_cluster\\s*="
+    line: "create_main_cluster = false"
+
+- name: "install_postgresql"
+  become: true
+  ansible.builtin.apt:
+    name:
+      - "postgresql-{{ postgres_version }}"
+      - "postgresql-client-{{ postgres_version }}"
+    state: present
+    update_cache: true
+
+# A cluster created by the package has its own system ID. Patroni would adopt
+# it on the first node and then reject every replica with "system ID mismatch".
+# Dropping it removes the data dir, so Patroni initialises an empty one itself.
+# Once dropped, /etc/postgresql/<version>/main is gone, so reruns do not touch
+# a data dir that Patroni created.
+- name: "check_package_cluster_exists"
+  ansible.builtin.stat:
+    path: "/etc/postgresql/{{ postgres_version }}/main"
+  register: postgres_package_cluster
+  when: postgres_suppress_initdb
+
+- name: "drop_package_cluster"
+  become: true
+  when:
+    - postgres_suppress_initdb
+    - postgres_package_cluster.stat.exists
+  ansible.builtin.command: "pg_dropcluster --stop {{ postgres_version }} main"
+
+- name: "stop_and_disable_postgresql_service"
+  become: true
+  when: not postgres_start_service
+  ansible.builtin.systemd:
+    name: "postgresql"
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
+- name: "ensure_data_dir_exists"
+  become: true
+  ansible.builtin.file:
+    path: "{{ postgres_data_dir }}"
+    state: directory
+    owner: "postgres"
+    group: "postgres"
+    mode: "0700"

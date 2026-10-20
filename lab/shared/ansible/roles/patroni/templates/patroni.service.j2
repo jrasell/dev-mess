@@ -1,0 +1,16 @@
+[Unit]
+Description=Patroni - PostgreSQL High-Availability Manager
+Documentation=https://patroni.readthedocs.io/
+After=network.target etcd.service
+
+[Service]
+User=postgres
+Group=postgres
+ExecStart={{ patroni_venv_dir }}/bin/patroni {{ patroni_config_dir }}/patroni.yaml
+Restart=on-failure
+RestartSec=5
+KillMode=process
+TimeoutSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,110 @@
+- name: "create_etcd_group"
+  become: true
+  ansible.builtin.group:
+    name: "etcd"
+    system: true
+    state: present
+
+- name: "create_etcd_user"
+  become: true
+  ansible.builtin.user:
+    name: "etcd"
+    group: "etcd"
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: "check_etcd_installed_version"
+  ansible.builtin.stat:
+    path: "/usr/local/bin/etcd"
+  register: etcd_binary_stat
+
+- name: "get_installed_etcd_version"
+  ansible.builtin.command: "/usr/local/bin/etcd --version"
+  register: etcd_installed_version
+  when: etcd_binary_stat.stat.exists
+  changed_when: false
+
+- name: "download_etcd_archive"
+  become: false
+  ansible.builtin.get_url:
+    url: "https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-arm64.tar.gz"
+    checksum: "{{ etcd_checksum }}"
+    dest: "/tmp/etcd-v{{ etcd_version }}-linux-arm64.tar.gz"
+    timeout: 60
+    mode: "0600"
+  when: >
+    not etcd_binary_stat.stat.exists or
+    (etcd_installed_version.stdout is defined and etcd_version not in etcd_installed_version.stdout)
+
+- name: "extract_etcd_binaries"
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "/tmp/etcd-v{{ etcd_version }}-linux-arm64.tar.gz"
+    dest: "{{ etcd_install_dir }}"
+    extra_opts:
+      - "--strip-components=1"
+      - "etcd-v{{ etcd_version }}-linux-arm64/etcd"
+      - "etcd-v{{ etcd_version }}-linux-arm64/etcdctl"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: >
+    not etcd_binary_stat.stat.exists or
+    (etcd_installed_version.stdout is defined and etcd_version not in etcd_installed_version.stdout)
+  notify: "restart_etcd"
+
+- name: "remove_etcd_archive"
+  ansible.builtin.file:
+    path: "/tmp/etcd-v{{ etcd_version }}-linux-arm64.tar.gz"
+    state: absent
+
+- name: "create_etcd_data_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ etcd_data_dir }}"
+    state: directory
+    owner: "etcd"
+    group: "etcd"
+    mode: "0700"
+
+- name: "create_etcd_config_dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ etcd_config_dir }}"
+    state: directory
+    owner: "etcd"
+    group: "etcd"
+    mode: "0750"
+
+- name: "write_etcd_config"
+  become: true
+  ansible.builtin.template:
+    src: "{{ etcd_config_template }}"
+    dest: "{{ etcd_config_dir }}/etcd.conf.yaml"
+    owner: "etcd"
+    group: "etcd"
+    mode: "0640"
+  notify: "restart_etcd"
+
+- name: "write_etcd_service"
+  become: true
+  ansible.builtin.template:
+    src: "etcd.service.j2"
+    dest: "/etc/systemd/system/etcd.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+    - "reload_systemd"
+    - "restart_etcd"
+
+- name: "enable_and_start_etcd"
+  become: true
+  ansible.builtin.systemd:
+    name: "etcd"
+    state: started
+    enabled: true
+    daemon_reload: true

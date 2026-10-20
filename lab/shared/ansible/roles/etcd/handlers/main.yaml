@@ -1,0 +1,10 @@
+- name: "reload_systemd"
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: "restart_etcd"
+  become: true
+  ansible.builtin.systemd:
+    name: "etcd"
+    state: restarted

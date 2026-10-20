@@ -1,0 +1,7 @@
+etcd_version: "3.7.2"
+etcd_checksum: "sha256:5e3ff99d428fabfcefdc95348f6560d1efe835f7b2d1ab3334fe0831076966b7"
+
+etcd_install_dir: "/usr/local/bin"
+etcd_config_dir: "/etc/etcd"
+etcd_data_dir: "/var/lib/etcd"
+etcd_config_template: ""
