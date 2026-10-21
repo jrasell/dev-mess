@@ -1,0 +1,59 @@
+---
+- name: "create_kubernetes_directory"
+  become: true
+  ansible.builtin.file:
+    path: /etc/kubernetes
+    state: directory
+    mode: '0755'
+
+- name: "write_kubeadm_config_template"
+  become: true
+  ansible.builtin.template:
+    src: "{{ kubernetes_kubeadm_template }}"
+    dest: /etc/kubernetes/kubeadm.yaml
+    mode: '0600'
+
+- name: "initialize_kubernetes_cluster"
+  become: true
+  ansible.builtin.command:
+    cmd: kubeadm init --config /etc/kubernetes/kubeadm.yaml
+    creates: /etc/kubernetes/admin.conf
+
+- name: "create_kube_directory"
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ item }}/.kube"
+    state: directory
+    owner: "{{ item }}"
+    mode: '0700'
+  loop: "{{ kubernetes_kubectl_users }}"
+
+- name: "copy_kubeconfig_to_user"
+  become: true
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ item }}/.kube/config"
+    remote_src: true
+    owner: "{{ item }}"
+    mode: '0600'
+  loop: "{{ kubernetes_kubectl_users }}"
+
+- name: "install_kubernetes_networking"
+  become: true
+  ansible.builtin.command: >-
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ kubernetes_cni_manifest }}
+  register: kubernetes_cni_apply
+  changed_when: "'created' in kubernetes_cni_apply.stdout or 'configured' in kubernetes_cni_apply.stdout"
+  retries: 12
+  delay: 5
+  until: kubernetes_cni_apply is succeeded
+
+- name: "allow_pods_on_control_plane"
+  become: true
+  ansible.builtin.command: >-
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all
+    node-role.kubernetes.io/control-plane-
+  register: kubernetes_taint
+  failed_when: kubernetes_taint.rc != 0 and 'not found' not in kubernetes_taint.stderr
+  changed_when: kubernetes_taint.rc == 0
+  when: kubernetes_allow_pods_on_control_plane | bool

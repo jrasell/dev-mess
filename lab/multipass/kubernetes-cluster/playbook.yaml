@@ -1,0 +1,4 @@
+---
+- ansible.builtin.import_playbook: playbook_control.yaml
+- ansible.builtin.import_playbook: playbook_kubelet.yaml
+- ansible.builtin.import_playbook: playbook_localhost.yaml

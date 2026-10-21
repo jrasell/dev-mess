@@ -1,0 +1,23 @@
+---
+- name: "check_mode"
+  ansible.builtin.assert:
+    that: kubernetes_mode in ['init', 'control', 'kubelet']
+    fail_msg: 'kubernetes_mode must be init, control, or kubelet'
+
+- name: "install_kubernetes"
+  ansible.builtin.import_tasks: install.yaml
+
+- name: "configure_api_load_balancer"
+  ansible.builtin.import_tasks: api_lb.yaml
+
+- name: "initialize_cluster"
+  ansible.builtin.include_tasks: init.yaml
+  when: kubernetes_mode == 'init'
+
+- name: "create_cluster"
+  ansible.builtin.include_tasks: control.yaml
+  when: kubernetes_mode == 'control'
+
+- name: "create_kubelet"
+  ansible.builtin.include_tasks: kubelet.yaml
+  when: kubernetes_mode == 'kubelet'

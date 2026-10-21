@@ -1,0 +1,22 @@
+---
+- name: "install_haproxy"
+  become: true
+  ansible.builtin.apt:
+    name: haproxy
+    state: present
+    update_cache: true
+
+- name: "configure_haproxy"
+  become: true
+  ansible.builtin.template:
+    src: "{{ kubernetes_api_lb_template }}"
+    dest: /etc/haproxy/haproxy.cfg
+    mode: '0644'
+  register: kubernetes_haproxy_config
+
+- name: "start_haproxy"
+  become: true
+  ansible.builtin.service:
+    name: haproxy
+    state: "{{ 'restarted' if kubernetes_haproxy_config.changed else 'started' }}"
+    enabled: true

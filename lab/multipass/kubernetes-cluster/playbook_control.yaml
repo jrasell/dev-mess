@@ -1,0 +1,24 @@
+---
+# Install containerd on all control plane instances. This is needed by kubeadm
+# to install and run the Kubernetes control plane components.
+- hosts: k8s_control
+  roles:
+    - role: geerlingguy.containerd
+      become: true
+
+- hosts: k8s_control[0]
+  roles:
+    - role: kubernetes
+      kubernetes_mode: init
+      kubernetes_kubeadm_template: ./templates/kubeadm.yaml.j2
+      kubernetes_api_lb_template: ./templates/haproxy.cfg.j2
+      kubernetes_kubectl_users: ["{{ ansible_user_id }}"]
+
+- hosts: k8s_control[1:]
+  serial: 1
+  roles:
+    - role: kubernetes
+      kubernetes_mode: control
+      kubernetes_bootstrap_host: "{{ groups['k8s_control'][0] }}"
+      kubernetes_kubectl_users: ["{{ ansible_user_id }}"]
+      kubernetes_api_lb_template: ./templates/haproxy.cfg.j2

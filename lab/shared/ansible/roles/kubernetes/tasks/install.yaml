@@ -1,0 +1,64 @@
+---
+- name: "install_prerequisites"
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - python3-debian
+    state: present
+
+- name: "add_kubernetes_apt_repository"
+  become: true
+  ansible.builtin.deb822_repository:
+    name: kubernetes
+    types: deb
+    uris: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/"
+    suites: /
+    signed_by: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key"
+  register: kubernetes_repository
+
+- name: "install_kubernetes_packages"
+  become: true
+  ansible.builtin.apt:
+    name:
+      - kubeadm
+      - kubelet
+      - kubectl
+      - kubernetes-cni
+    state: present
+    update_cache: "{{ kubernetes_repository.changed }}"
+
+- name: "load_bridge_netfilter_on_boot"
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/kubernetes.conf
+    content: "br_netfilter\n"
+    mode: '0644'
+
+- name: "load_bridge_netfilter_now"
+  become: true
+  ansible.builtin.command: modprobe br_netfilter
+  changed_when: false
+
+- name: "configure_networking_sysctls"
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-kubernetes.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.ipv4.ip_forward = 1
+    mode: '0644'
+  register: kubernetes_sysctls
+
+- name: "reload_sysctl_configuration"
+  become: true
+  ansible.builtin.command: sysctl --system
+  when: kubernetes_sysctls.changed
+
+- name: "enable_kubelet_service"
+  become: true
+  ansible.builtin.service:
+    name: kubelet
+    enabled: true
+    state: started

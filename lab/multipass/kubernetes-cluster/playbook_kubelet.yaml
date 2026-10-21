@@ -1,0 +1,10 @@
+---
+- hosts: k8s_kubelet
+  roles:
+    - role: geerlingguy.containerd
+      become: true
+
+    - role: kubernetes
+      kubernetes_mode: kubelet
+      kubernetes_bootstrap_host: "{{ groups['k8s_control'][0] }}"
+      kubernetes_api_lb_template: ./templates/haproxy.cfg.j2

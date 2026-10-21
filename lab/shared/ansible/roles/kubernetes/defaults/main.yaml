@@ -1,0 +1,27 @@
+---
+# Run the role in init, control, or kubelet mode.
+kubernetes_mode: ""
+
+# This is the version of kubeadm, kubelet, and kubectl that will be installed.
+kubernetes_version: '1.37'
+kubernetes_kubeadm_version: "stable-{{ kubernetes_version }}"
+
+# This is the host that will be used to bootstrap the cluster. It is only used
+# when kubernetes_mode is set to control or worker.
+kubernetes_bootstrap_host: ""
+
+# The Kubeadm template to use when initializing the cluster.
+kubernetes_kubeadm_template: ""
+
+# Options to configure the Kubernetes API load balancer which provides HA and
+# balanced access internally to the control plane API.
+kubernetes_api_lb_template: ""
+
+# I HATE THIS! For now though, configure Flannel and the pod overlay network by
+# blindly trusting yaml from the internet. Cool cool cool.
+kubernetes_cni_manifest: 'https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml'
+kubernetes_allow_pods_on_control_plane: false
+
+# This is a list of users who are allowed to use kubectl and therefore will have
+# their kubeconfig files created in their home directories.
+kubernetes_kubectl_users: [ ]

@@ -1,0 +1,23 @@
+---
+- name: "check_kublet_config"
+  become: true
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubernetes_worker_config
+
+- name: "create_kublet_config"
+  become: true
+  ansible.builtin.command: kubeadm token create --print-join-command
+  delegate_to: "{{ kubernetes_bootstrap_host }}"
+  register: kubernetes_worker_join
+  changed_when: false
+  no_log: true
+  when: not kubernetes_worker_config.stat.exists
+
+- name: "run_kublet_join"
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ kubernetes_worker_join.stdout }}"
+    creates: /etc/kubernetes/kubelet.conf
+  no_log: true
+  when: not kubernetes_worker_config.stat.exists

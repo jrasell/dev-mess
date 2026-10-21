@@ -1,0 +1,30 @@
+---
+- name: "local_kubectl_connectivity"
+  hosts: localhost
+  gather_facts: false
+  vars:
+    kubernetes_api_host: "{{ groups['k8s_control'] | first }}"
+    kubernetes_api_ip: "{{ hostvars[kubernetes_api_host]['ansible_host'] }}"
+    kubernetes_local_config: "{{ playbook_dir }}/generated_kubeconfig.yaml"
+
+  tasks:
+    - name: "read_admin_config"
+      become: true
+      ansible.builtin.slurp:
+        src: /etc/kubernetes/admin.conf
+      delegate_to: "{{ kubernetes_api_host }}"
+      register: kubernetes_admin_config
+      no_log: true
+
+    - name: "write_kubectl_config"
+      ansible.builtin.copy:
+        dest: "{{ kubernetes_local_config }}"
+        content: "{{ (kubernetes_admin_config.content | b64decode) | replace('server: https://127.0.0.1:6444', 'server: https://' ~ kubernetes_api_ip ~ ':6443') }}"
+        mode: '0600'
+      no_log: true
+
+    - name: "write_envrc"
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/.envrc"
+        content: "export KUBECONFIG={{ kubernetes_local_config | quote }}\n"
+        mode: '0644'
