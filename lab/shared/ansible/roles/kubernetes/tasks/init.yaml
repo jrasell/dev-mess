@@ -38,16 +38,6 @@
     mode: '0600'
   loop: "{{ kubernetes_kubectl_users }}"
 
-- name: "install_kubernetes_networking"
-  become: true
-  ansible.builtin.command: >-
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f {{ kubernetes_cni_manifest }}
-  register: kubernetes_cni_apply
-  changed_when: "'created' in kubernetes_cni_apply.stdout or 'configured' in kubernetes_cni_apply.stdout"
-  retries: 12
-  delay: 5
-  until: kubernetes_cni_apply is succeeded
-
 - name: "allow_pods_on_control_plane"
   become: true
   ansible.builtin.command: >-

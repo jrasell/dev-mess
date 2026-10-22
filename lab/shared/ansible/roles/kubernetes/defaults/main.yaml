@@ -17,9 +17,8 @@ kubernetes_kubeadm_template: ""
 # balanced access internally to the control plane API.
 kubernetes_api_lb_template: ""
 
-# I HATE THIS! For now though, configure Flannel and the pod overlay network by
-# blindly trusting yaml from the internet. Cool cool cool.
-kubernetes_cni_manifest: 'https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml'
+# This boolean sets an optional taint on the control-plane instances which
+# blocks workload being scheduled on them.
 kubernetes_allow_pods_on_control_plane: false
 
 # This is a list of users who are allowed to use kubectl and therefore will have
