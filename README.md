@@ -12,6 +12,12 @@ workstation configurations I use.
   deployment option, Multipass for local VMs, and local for running on the base
   host.
 
+  * [lab/nomad](./lab/shared/nomad): Nomad job specifications that are expected
+    to be executed using the Nomad CLI.
+
+  * [lab/k8s](./lab/shared/k8s): Kubernetes manifests that are expected to be
+    applied using [kustomize](https://kustomize.io).
+
 * [tools](./tools): Various tools and utilities I have written for different
   purposes.
 
