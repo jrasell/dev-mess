@@ -7,6 +7,11 @@ apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
 kubernetesVersion: {{ kubernetes_kubeadm_version }}
 controlPlaneEndpoint: 127.0.0.1:6444
+etcd:
+  local:
+    extraArgs:
+      - name: listen-metrics-urls
+        value: http://0.0.0.0:2381
 networking:
   podSubnet: 10.244.0.0/16
 ---
