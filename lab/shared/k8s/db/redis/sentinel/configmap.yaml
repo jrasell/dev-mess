@@ -1,0 +1,93 @@
+---
+# Configuration and bootstrap scripts for Redis + Sentinel HA
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-sentinel-scripts
+data:
+  redis-base.conf: |
+    bind 0.0.0.0
+    port 6379
+    protected-mode no
+    dir /data
+    appendonly yes
+    appendfsync everysec
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+
+  sentinel-base.conf: |
+    bind 0.0.0.0
+    port 26379
+    protected-mode no
+    dir /tmp
+    sentinel resolve-hostnames yes
+    sentinel announce-hostnames yes
+    sentinel down-after-milliseconds mymaster 5000
+    sentinel failover-timeout mymaster 10000
+    sentinel parallel-syncs mymaster 1
+
+  start-redis.sh: |
+    #!/bin/sh
+    set -eu
+
+    # Copy base config into a writable location because Redis/Sentinel
+    # rewrite their config files on role transitions (CONFIG REWRITE).
+    cp /scripts/redis-base.conf /data/redis.conf
+
+    echo "replica-announce-ip ${POD_IP}" >> /data/redis.conf
+    echo "replica-announce-port 6379" >> /data/redis.conf
+
+    MASTER_HOST=""
+    # Query Sentinel service to discover if a master is already elected
+    for host in redis-sentinel redis-0.redis-headless redis-1.redis-headless redis-2.redis-headless; do
+      MASTER_IP=$(redis-cli -h "${host}" -p 26379 --raw SENTINEL get-master-addr-by-name mymaster 2>/dev/null | head -n 1 || true)
+      if [ -n "${MASTER_IP}" ]; then
+        MASTER_HOST="${MASTER_IP}"
+        break
+      fi
+    done
+
+    if [ -n "${MASTER_HOST}" ]; then
+      if [ "${MASTER_HOST}" != "${POD_IP}" ] && [ "${MASTER_HOST}" != "${HOSTNAME}.redis-headless" ]; then
+        echo "Discovered existing master at ${MASTER_HOST}; starting as replica"
+        echo "replicaof ${MASTER_HOST} 6379" >> /data/redis.conf
+      fi
+    else
+      # Initial cluster bootstrap: redis-0 starts as primary, others replicate from redis-0
+      if [ "${HOSTNAME}" != "redis-0" ]; then
+        echo "Bootstrap mode: configuring ${HOSTNAME} as replica of redis-0.redis-headless"
+        echo "replicaof redis-0.redis-headless 6379" >> /data/redis.conf
+      else
+        echo "Bootstrap mode: configuring redis-0 as initial master"
+      fi
+    fi
+
+    exec redis-server /data/redis.conf
+
+  start-sentinel.sh: |
+    #!/bin/sh
+    set -eu
+
+    # Sentinel requires write access to its config file to persist cluster state
+    cp /scripts/sentinel-base.conf /data/sentinel.conf
+
+    MASTER_HOST="redis-0.redis-headless"
+    for host in redis-sentinel redis-0.redis-headless redis-1.redis-headless redis-2.redis-headless; do
+      MASTER_IP=$(redis-cli -h "${host}" -p 26379 --raw SENTINEL get-master-addr-by-name mymaster 2>/dev/null | head -n 1 || true)
+      if [ -n "${MASTER_IP}" ]; then
+        MASTER_HOST="${MASTER_IP}"
+        break
+      fi
+    done
+
+    # Wait until the target master is reachable so `sentinel monitor` can resolve it
+    until redis-cli -h "${MASTER_HOST}" -p 6379 ping 2>/dev/null | grep -q PONG; do
+      echo "Waiting for Redis master (${MASTER_HOST}) to be reachable..."
+      sleep 2
+    done
+
+    echo "sentinel announce-ip ${POD_IP}" >> /data/sentinel.conf
+    echo "sentinel announce-port 26379" >> /data/sentinel.conf
+    echo "sentinel monitor mymaster ${MASTER_HOST} 6379 2" >> /data/sentinel.conf
+
+    exec redis-sentinel /data/sentinel.conf

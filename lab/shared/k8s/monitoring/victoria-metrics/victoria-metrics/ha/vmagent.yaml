@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmagent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vmagent
+  template:
+    metadata:
+      labels:
+        app: vmagent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8429"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: victoriametrics
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: vmagent
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: vmagent
+          image: victoriametrics/vmagent:v1.154.1
+          args:
+            - "-promscrape.config=/config/vmagent-config.yaml"
+            - "-remoteWrite.url=http://vminsert.monitoring.svc.cluster.local:8480/insert/0/prometheus/api/v1/write"
+            - "-remoteWrite.tmpDataPath=/tmpData"
+          ports:
+            - name: http
+              containerPort: 8429
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8429
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8429
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: vmagent-config
+              mountPath: /config
+              readOnly: true
+            - name: tmp-data
+              mountPath: /tmpData
+      volumes:
+        - name: vmagent-config
+          configMap:
+            name: vmagent-config
+        - name: tmp-data
+          emptyDir: {}

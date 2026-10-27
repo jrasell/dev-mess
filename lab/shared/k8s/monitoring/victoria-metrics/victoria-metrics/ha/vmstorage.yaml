@@ -1,0 +1,62 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vmstorage
+spec:
+  serviceName: vmstorage
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: vmstorage
+  template:
+    metadata:
+      labels:
+        app: vmstorage
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8482"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: vmstorage
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: vmstorage
+          image: victoriametrics/vmstorage:v1.154.1-cluster
+          args:
+            - "-storageDataPath=/storage"
+            - "-retentionPeriod=7d"
+            - "-dedup.minScrapeInterval=15s"
+          ports:
+            - name: http
+              containerPort: 8482
+            - name: vminsert
+              containerPort: 8400
+            - name: vmselect
+              containerPort: 8401
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8482
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8482
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: vmstorage-data
+              mountPath: /storage
+      volumes:
+        - name: vmstorage-data
+          emptyDir: {}

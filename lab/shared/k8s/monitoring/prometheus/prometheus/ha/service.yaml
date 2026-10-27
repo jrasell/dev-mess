@@ -1,0 +1,29 @@
+---
+# Headless service providing stable per-pod DNS records (prometheus-0.prometheus-headless, etc.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-headless
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+
+---
+# Client service load-balancing queries across healthy Prometheus HA replicas
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http

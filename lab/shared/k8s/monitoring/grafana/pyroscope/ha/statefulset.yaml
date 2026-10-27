@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pyroscope
+spec:
+  serviceName: pyroscope-headless
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: pyroscope
+  template:
+    metadata:
+      labels:
+        app: pyroscope
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4040"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: pyroscope
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: pyroscope
+          image: grafana/pyroscope:1.13.4
+          args:
+            - "-config.file=/etc/pyroscope/pyroscope-config.yaml"
+            - "-memberlist.advertise-addr=$(POD_IP)"
+            - "-ingester.lifecycler.addr=$(POD_IP)"
+            - "-distributor.ring.instance-addr=$(POD_IP)"
+            - "-store-gateway.sharding-ring.instance-addr=$(POD_IP)"
+            - "-compactor.ring.instance-addr=$(POD_IP)"
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - name: http
+              containerPort: 4040
+              protocol: TCP
+            - name: grpc
+              containerPort: 9095
+              protocol: TCP
+            - name: memberlist
+              containerPort: 7946
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 4040
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 4040
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          volumeMounts:
+            - name: pyroscope-config
+              mountPath: /etc/pyroscope
+              readOnly: true
+            - name: pyroscope-storage
+              mountPath: /data
+      volumes:
+        - name: pyroscope-config
+          configMap:
+            name: pyroscope-config
+        - name: pyroscope-storage
+          emptyDir: {}

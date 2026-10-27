@@ -1,0 +1,84 @@
+---
+# Cilium Operator Deployment: registers Cilium CRDs, garbage-collects stale
+# endpoints/identities, and coordinates cluster-wide state.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cilium-operator
+  namespace: networking
+  labels:
+    name: cilium-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: cilium-operator
+  template:
+    metadata:
+      labels:
+        name: cilium-operator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9963"
+    spec:
+      serviceAccountName: cilium-operator
+      # Uses hostNetwork so the Operator can start and register CRDs before CNI
+      # is ready.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: cilium-operator
+          image: quay.io/cilium/operator-generic:v1.20.3
+          command:
+            - cilium-operator-generic
+          args:
+            - --config-dir=/tmp/cilium/config-map
+          env:
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: CILIUM_K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: KUBERNETES_SERVICE_HOST
+              value: "127.0.0.1"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "6444"
+          ports:
+            - name: prometheus
+              containerPort: 9963
+              hostPort: 9963
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /healthz
+              port: 9234
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /healthz
+              port: 9234
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 5
+          volumeMounts:
+            - name: cilium-config-path
+              mountPath: /tmp/cilium/config-map
+              readOnly: true
+      volumes:
+        - name: cilium-config-path
+          configMap:
+            name: cilium-config

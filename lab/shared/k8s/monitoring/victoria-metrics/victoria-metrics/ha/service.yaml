@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmstorage
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: vmstorage
+  ports:
+    - name: http
+      port: 8482
+      targetPort: http
+    - name: vminsert
+      port: 8400
+      targetPort: vminsert
+    - name: vmselect
+      port: 8401
+      targetPort: vmselect
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vminsert
+spec:
+  selector:
+    app: vminsert
+  ports:
+    - name: http
+      port: 8480
+      targetPort: http
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmselect
+spec:
+  selector:
+    app: vmselect
+  ports:
+    - name: http
+      port: 8481
+      targetPort: http
+
+---
+# Service exposing vmagent HTTP status and target discovery UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmagent
+spec:
+  selector:
+    app: vmagent
+  ports:
+    - name: http
+      port: 8429
+      targetPort: http
+
+---
+# Unified VictoriaMetrics entrypoint backed by vmauth (serves vmui at `/vmui/`
+# and PromQL API at `/api/v1/...`, matching the standalone Service port 8428)
+apiVersion: v1
+kind: Service
+metadata:
+  name: victoriametrics
+spec:
+  selector:
+    app: vmauth
+  ports:
+    - name: http
+      port: 8428
+      targetPort: http

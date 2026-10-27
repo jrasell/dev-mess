@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+
+resources:
+  - ../../_namespace
+  - ../../kube-metrics-server
+  - ../../kube-state-metrics
+  - ../../prometheus/node-exporter
+  - ../../prometheus/prometheus/ha
+  - ../../prometheus/alertmanager/ha
+  - ../../grafana/grafana
+  - ../../grafana/pyroscope/ha

@@ -1,0 +1,232 @@
+---
+# Cilium Agent DaemonSet: runs on every node (control-plane + workers),
+# mounts eBPF/cgroup filesystems, installs the CNI binary, and manages pod
+# networking.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cilium
+  namespace: networking
+  labels:
+    k8s-app: cilium
+spec:
+  selector:
+    matchLabels:
+      k8s-app: cilium
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+  template:
+    metadata:
+      labels:
+        k8s-app: cilium
+      annotations:
+        # Automatically discovered and scraped by VictoriaMetrics' `kubernetes-pods` job
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9962"
+    spec:
+      serviceAccountName: cilium
+      # Must use hostNetwork so Cilium can start before Pod networking exists
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      restartPolicy: Always
+      # Tolerate all taints (including NotReady and control-plane nodes)
+      tolerations:
+        - operator: Exists
+      initContainers:
+        # 1. Mounts the host cgroupv2 hierarchy so Cilium can attach socket-level eBPF programs
+        - name: mount-cgroup
+          image: quay.io/cilium/cilium:v1.20.3
+          command:
+            - sh
+            - -ec
+            - |
+              cp /usr/bin/cilium-mount /hostbin/cilium-mount;
+              nsenter --cgroup=/hostproc/1/ns/cgroup --mount=/hostproc/1/ns/mnt "${BIN_PATH}/cilium-mount" $CGROUP_ROOT;
+              rm /hostbin/cilium-mount
+          env:
+            - name: CGROUP_ROOT
+              value: /run/cilium/cgroupv2
+            - name: BIN_PATH
+              value: /opt/cni/bin
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: hostproc
+              mountPath: /hostproc
+            - name: cni-path
+              mountPath: /hostbin
+        # 2. Disables rp_filter on lxc* and cilium_* interfaces so Ubuntu's systemd-sysctl
+        # does not drop asymmetric eBPF pod traffic as martian packets.
+        - name: apply-sysctl-overwrites
+          image: quay.io/cilium/cilium:v1.20.3
+          command:
+            - sh
+            - -ec
+            - |
+              cp /usr/bin/cilium-sysctlfix /hostbin/cilium-sysctlfix;
+              nsenter --mount=/hostproc/1/ns/mnt "${BIN_PATH}/cilium-sysctlfix";
+              rm /hostbin/cilium-sysctlfix
+          env:
+            - name: BIN_PATH
+              value: /opt/cni/bin
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: hostproc
+              mountPath: /hostproc
+            - name: cni-path
+              mountPath: /hostbin
+        # 3. Ensures the Linux eBPF filesystem (/sys/fs/bpf) is mounted on the host
+        - name: mount-bpf-fs
+          image: quay.io/cilium/cilium:v1.20.3
+          command:
+            - /bin/bash
+            - -c
+            - --
+            - mount | grep "/sys/fs/bpf type bpf" || mount -t bpf bpf /sys/fs/bpf
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: bpf-maps
+              mountPath: /sys/fs/bpf
+              mountPropagation: Bidirectional
+        # 3. Installs `/opt/cni/bin/cilium-cni` on the node
+        - name: install-cni-binaries
+          image: quay.io/cilium/cilium:v1.20.3
+          command:
+            - /install-plugin.sh
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: cni-path
+              mountPath: /host/opt/cni/bin
+      containers:
+        - name: cilium-agent
+          image: quay.io/cilium/cilium:v1.20.3
+          command:
+            - cilium-agent
+          args:
+            - --config-dir=/tmp/cilium/config-map
+          env:
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: CILIUM_K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: KUBERNETES_SERVICE_HOST
+              value: "127.0.0.1"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "6444"
+          ports:
+            - name: prometheus
+              containerPort: 9962
+              hostPort: 9962
+              protocol: TCP
+            - name: hubble-metrics
+              containerPort: 9965
+              hostPort: 9965
+              protocol: TCP
+            - name: hubble-peer
+              containerPort: 4244
+              hostPort: 4244
+              protocol: TCP
+          securityContext:
+            privileged: true
+          startupProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /healthz
+              port: 9879
+              scheme: HTTP
+              httpHeaders:
+                - name: brief
+                  value: "true"
+            failureThreshold: 105
+            periodSeconds: 2
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /healthz
+              port: 9879
+              scheme: HTTP
+              httpHeaders:
+                - name: brief
+                  value: "true"
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              host: 127.0.0.1
+              path: /healthz
+              port: 9879
+              scheme: HTTP
+              httpHeaders:
+                - name: brief
+                  value: "true"
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: cilium-config-path
+              mountPath: /tmp/cilium/config-map
+              readOnly: true
+            - name: bpf-maps
+              mountPath: /sys/fs/bpf
+              mountPropagation: HostToContainer
+            - name: cilium-run
+              mountPath: /var/run/cilium
+            - name: cilium-cgroup
+              mountPath: /run/cilium/cgroupv2
+            - name: etc-cni-netd
+              mountPath: /host/etc/cni/net.d
+            - name: lib-modules
+              mountPath: /lib/modules
+              readOnly: true
+            - name: xtables-lock
+              mountPath: /run/xtables.lock
+      volumes:
+        - name: cilium-config-path
+          configMap:
+            name: cilium-config
+        - name: cilium-run
+          hostPath:
+            path: /var/run/cilium
+            type: DirectoryOrCreate
+        - name: bpf-maps
+          hostPath:
+            path: /sys/fs/bpf
+            type: DirectoryOrCreate
+        - name: cilium-cgroup
+          hostPath:
+            path: /run/cilium/cgroupv2
+            type: DirectoryOrCreate
+        - name: hostproc
+          hostPath:
+            path: /proc
+            type: Directory
+        - name: cni-path
+          hostPath:
+            path: /opt/cni/bin
+            type: DirectoryOrCreate
+        - name: etc-cni-netd
+          hostPath:
+            path: /etc/cni/net.d
+            type: DirectoryOrCreate
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        - name: xtables-lock
+          hostPath:
+            path: /run/xtables.lock
+            type: FileOrCreate

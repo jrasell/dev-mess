@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: victoriametrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: victoriametrics
+  template:
+    metadata:
+      labels:
+        app: victoriametrics
+    spec:
+      serviceAccountName: victoriametrics
+      containers:
+        - name: victoriametrics
+          image: victoriametrics/victoria-metrics:v1.154.1
+          args:
+            - "-storageDataPath=/storage"
+            - "-promscrape.config=/config/victoriametrics-config.yaml"
+            - "-retentionPeriod=7d"
+          env:
+            - name: VM_METRICS_PATH
+              value: "/metrics"
+          ports:
+            - name: http
+              containerPort: 8428
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8428
+            initialDelaySeconds: 5
+          volumeMounts:
+            - name: victoriametrics-config
+              mountPath: /config
+              readOnly: true
+            - name: vm-storage
+              mountPath: /storage
+      volumes:
+        - name: victoriametrics-config
+          configMap:
+            name: victoriametrics-config
+        - name: vm-storage
+          emptyDir: {}

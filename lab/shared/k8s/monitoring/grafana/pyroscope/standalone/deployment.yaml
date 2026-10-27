@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pyroscope
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pyroscope
+  template:
+    metadata:
+      labels:
+        app: pyroscope
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4040"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: pyroscope
+          image: grafana/pyroscope:1.13.4
+          args:
+            - "-config.file=/etc/pyroscope/pyroscope-config.yaml"
+          ports:
+            - name: http
+              containerPort: 4040
+              protocol: TCP
+            - name: grpc
+              containerPort: 9095
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 4040
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 4040
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          volumeMounts:
+            - name: pyroscope-config
+              mountPath: /etc/pyroscope
+              readOnly: true
+            - name: pyroscope-storage
+              mountPath: /data
+      volumes:
+        - name: pyroscope-config
+          configMap:
+            name: pyroscope-config
+        - name: pyroscope-storage
+          emptyDir: {}

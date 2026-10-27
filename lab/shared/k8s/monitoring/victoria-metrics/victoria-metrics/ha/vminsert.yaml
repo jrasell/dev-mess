@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vminsert
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vminsert
+  template:
+    metadata:
+      labels:
+        app: vminsert
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8480"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: vminsert
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: vminsert
+          image: victoriametrics/vminsert:v1.154.1-cluster
+          args:
+            - "-storageNode=vmstorage-0.vmstorage.monitoring.svc.cluster.local:8400,vmstorage-1.vmstorage.monitoring.svc.cluster.local:8400"
+            - "-replicationFactor=2"
+          ports:
+            - name: http
+              containerPort: 8480
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8480
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8480
+            initialDelaySeconds: 10
+            periodSeconds: 10

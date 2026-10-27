@@ -1,0 +1,29 @@
+---
+# Exposes Hubble Relay gRPC endpoint internally for Hubble UI and `hubble` CLI
+apiVersion: v1
+kind: Service
+metadata:
+  name: hubble-relay
+  namespace: networking
+spec:
+  selector:
+    app: hubble-relay
+  ports:
+    - name: grpc
+      port: 4245
+      targetPort: grpc
+
+---
+# Exposes Hubble UI HTTP port internally within the cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: hubble-ui
+  namespace: networking
+spec:
+  selector:
+    app: hubble-ui
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http

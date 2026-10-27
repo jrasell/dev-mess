@@ -1,0 +1,6 @@
+---
+# Dedicated namespace for security components.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: security

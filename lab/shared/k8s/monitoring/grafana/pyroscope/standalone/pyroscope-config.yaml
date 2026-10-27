@@ -1,0 +1,14 @@
+---
+target: all
+
+server:
+  http_listen_port: 4040
+  grpc_listen_port: 9095
+
+pyroscopedb:
+  data_path: /data
+
+# Enable self-profiling so continuous profiling data is immediately available
+# in Grafana Explore and the Pyroscope UI out of the box.
+self_profiling:
+  disable_push: false

@@ -1,0 +1,34 @@
+---
+# Headless service providing stable DNS records (redis-cluster-0.redis-cluster-headless, etc.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-headless
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: redis-cluster
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+    - name: cluster-bus
+      port: 16379
+      targetPort: cluster-bus
+---
+# Client entrypoint service for initial cluster topology discovery
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster
+spec:
+  selector:
+    app: redis-cluster
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+    - name: cluster-bus
+      port: 16379
+      targetPort: cluster-bus

@@ -1,0 +1,45 @@
+---
+# HA Grafana Pyroscope configuration (3-replica scalable monolithic cluster).
+# Replicas coordinate via a Memberlist gossip ring on port 7946 and replicate
+# ingested profile streams across 3 ingesters (`replication_factor: 3`).
+target: all
+
+server:
+  http_listen_port: 4040
+  grpc_listen_port: 9095
+
+pyroscopedb:
+  data_path: /data
+
+memberlist:
+  bind_port: 7946
+  join_members:
+    - dns+pyroscope-headless.monitoring.svc.cluster.local:7946
+
+distributor:
+  ring:
+    kvstore:
+      store: memberlist
+
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: memberlist
+      replication_factor: 3
+
+store_gateway:
+  sharding_ring:
+    kvstore:
+      store: memberlist
+    replication_factor: 3
+
+compactor:
+  sharding_ring:
+    kvstore:
+      store: memberlist
+
+# Enable self-profiling so continuous profiling data is immediately available
+# in Grafana Explore and the Pyroscope UI out of the box.
+self_profiling:
+  disable_push: false

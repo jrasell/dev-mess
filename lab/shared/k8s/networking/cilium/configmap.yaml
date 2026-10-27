@@ -1,0 +1,69 @@
+---
+# Cilium cluster-wide configuration.
+# Works out of the box with kubeadm (podSubnet: 10.244.0.0/16) in a lab,
+# with comments showing the key knobs to adjust for production.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cilium-config
+  namespace: networking
+data:
+  debug: "false"
+
+  # IPAM mode:
+  # - "kubernetes": Uses the per-node PodCIDR allocated by kubeadm (10.244.0.0/16).
+  # - "cluster-pool": Cilium Operator allocates PodCIDRs itself (common in production).
+  ipam: "cluster-pool"
+  cluster-pool-ipv4-cidr: "10.244.0.0/16"
+  cluster-pool-ipv4-mask-size: "24"
+
+  # Use native routing.
+  #
+  #
+  routing-mode: "native"
+  auto-direct-node-routes: "true"
+  ipv4-native-routing-cidr: "10.244.0.0/16"
+
+  enable-ipv4: "true"
+  enable-ipv6: "false"
+  enable-ipv4-masquerade: "true"
+  enable-bpf-masquerade: "true"
+
+  # Store security identities as Kubernetes CRDs (no external etcd required)
+  identity-allocation-mode: "crd"
+  cilium-endpoint-gc-interval: "5m0s"
+  nodes-gc-interval: "5m0s"
+
+  # Kube-proxy replacement:
+  # - "false": Coexists with kubeadm's default kube-proxy DaemonSet.
+  # - "true": Replaces kube-proxy entirely with eBPF (requires setting KUBERNETES_SERVICE_HOST/PORT on agent).
+  kube-proxy-replacement: "true"
+
+  # Host filesystem paths for eBPF maps, cgroups, and CNI plugin configs
+  bpf-root: "/sys/fs/bpf"
+  cgroup-root: "/run/cilium/cgroupv2"
+  cni-bin-dir: "/opt/cni/bin"
+  cni-conf-dir: "/etc/cni/net.d"
+  cni-exclusive: "true"
+  custom-cni-conf: "false"
+  write-cni-conf-when-ready: "/host/etc/cni/net.d/05-cilium.conflist"
+
+  # Expose Prometheus metrics on :9962 (Agent) and :9963 (Operator)
+  enable-metrics: "true"
+  prometheus-serve-addr: ":9962"
+  operator-prometheus-serve-addr: ":9963"
+
+  # Enable Hubble network observability and Prometheus flow metrics
+  enable-hubble: "true"
+  hubble-listen-address: ":4244"
+  hubble-socket-path: "/var/run/cilium/hubble.sock"
+  hubble-disable-tls: "true"
+  hubble-metrics-server: ":9965"
+  hubble-metrics:
+    dns
+    drop
+    tcp
+    flow
+    port-distribution
+    icmp
+    httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction

@@ -1,0 +1,50 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmselect
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vmselect
+  template:
+    metadata:
+      labels:
+        app: vmselect
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8481"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: vmselect
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: vmselect
+          image: victoriametrics/vmselect:v1.154.1-cluster
+          args:
+            - "-storageNode=vmstorage-0.vmstorage.monitoring.svc.cluster.local:8401,vmstorage-1.vmstorage.monitoring.svc.cluster.local:8401"
+            - "-replicationFactor=2"
+            - "-dedup.minScrapeInterval=15s"
+          ports:
+            - name: http
+              containerPort: 8481
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8481
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8481
+            initialDelaySeconds: 10
+            periodSeconds: 10

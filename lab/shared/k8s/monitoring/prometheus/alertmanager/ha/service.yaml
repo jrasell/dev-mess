@@ -1,0 +1,39 @@
+---
+# Headless service providing stable per-pod DNS records for Alertmanager gossip peers
+# (alertmanager-0.alertmanager-headless.monitoring.svc.cluster.local, etc.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-headless
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: alertmanager
+  ports:
+    - name: http
+      port: 9093
+      targetPort: http
+      protocol: TCP
+    - name: cluster-tcp
+      port: 9094
+      targetPort: cluster-tcp
+      protocol: TCP
+    - name: cluster-udp
+      port: 9094
+      targetPort: cluster-udp
+      protocol: UDP
+
+---
+# Client service exposing Alertmanager UI and HTTP API across healthy cluster peers
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+spec:
+  selector:
+    app: alertmanager
+  ports:
+    - name: http
+      port: 9093
+      targetPort: http

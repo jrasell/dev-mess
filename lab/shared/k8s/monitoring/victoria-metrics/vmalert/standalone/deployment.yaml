@@ -1,0 +1,54 @@
+---
+# Deploys a single-instance vmalert server evaluating alerting and recording rules
+# against VictoriaMetrics and forwarding firing alerts to Alertmanager.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmalert
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmalert
+  template:
+    metadata:
+      labels:
+        app: vmalert
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8880"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: vmalert
+          image: victoriametrics/vmalert:v1.154.1
+          args:
+            - "-rule=/config/rules.yaml"
+            - "-datasource.url=http://victoriametrics.monitoring.svc.cluster.local:8428"
+            - "-remoteRead.url=http://victoriametrics.monitoring.svc.cluster.local:8428"
+            - "-remoteWrite.url=http://victoriametrics.monitoring.svc.cluster.local:8428"
+            - "-notifier.url=http://alertmanager.monitoring.svc.cluster.local:9093"
+            - "-evaluationInterval=15s"
+          ports:
+            - name: http
+              containerPort: 8880
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8880
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8880
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: vmalert-config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: vmalert-config
+          configMap:
+            name: vmalert-config

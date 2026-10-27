@@ -1,0 +1,31 @@
+---
+# Deploys kube-state-metrics to translate K8s API state into Prometheus metrics
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-state-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-state-metrics
+  template:
+    metadata:
+      labels:
+        app: kube-state-metrics
+    spec:
+      serviceAccountName: kube-state-metrics
+      containers:
+        - name: kube-state-metrics
+          image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0
+          ports:
+            - name: http-metrics
+              containerPort: 8080 # Port exposing K8s object state metrics
+            - name: telemetry
+              containerPort: 8081 # Port exposing KSM's own internal telemetry
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            timeoutSeconds: 5

@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmauth
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vmauth
+  template:
+    metadata:
+      labels:
+        app: vmauth
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8427"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: vmauth
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: vmauth
+          image: victoriametrics/vmauth:v1.154.1
+          args:
+            - "-auth.config=/config/vmauth-config.yaml"
+          ports:
+            - name: http
+              containerPort: 8427
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8427
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8427
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: vmauth-config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: vmauth-config
+          configMap:
+            name: vmauth-config

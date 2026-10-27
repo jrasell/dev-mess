@@ -1,0 +1,52 @@
+---
+# Configuration for Hubble Relay (aggregates flow streams from all Cilium agents)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hubble-relay-config
+  namespace: networking
+data:
+  config.yaml: |
+    cluster-name: default
+    peer-service: "hubble-peer.networking.svc.cluster.local:4244"
+    listen-address: :4245
+    disable-server-tls: true
+    disable-client-tls: true
+
+---
+# Nginx configuration for the Hubble UI frontend container (serves static SPA
+# and reverse-proxies /api to the sidecar hubble-ui-backend on :8090).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hubble-ui-nginx
+  namespace: networking
+data:
+  default.conf: |
+    server {
+      listen       8081;
+      server_name  localhost;
+      root /app;
+      index index.html;
+      client_max_body_size 1G;
+
+      location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        location /api {
+          proxy_http_version 1.1;
+          proxy_pass_request_headers on;
+          proxy_hide_header Access-Control-Allow-Origin;
+          proxy_set_header Connection '';
+          proxy_buffering off;
+          proxy_read_timeout 86400s;
+          proxy_send_timeout 86400s;
+          proxy_pass http://127.0.0.1:8090;
+        }
+
+        location / {
+          try_files $uri $uri/ /index.html;
+        }
+      }
+    }

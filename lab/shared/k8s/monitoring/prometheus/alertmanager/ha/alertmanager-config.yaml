@@ -1,0 +1,22 @@
+---
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'namespace', 'job']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'default-sink'
+  routes:
+    - matchers:
+        - alertname = "Watchdog"
+      receiver: 'watchdog'
+      repeat_interval: 5m
+
+receivers:
+  # Default null receiver for lab environments; alerts remain visible in the
+  # Alertmanager UI, API, and Grafana Alerting view.
+  - name: 'default-sink'
+
+  - name: 'watchdog'

@@ -1,0 +1,44 @@
+---
+# Headless service providing stable per-pod DNS records (redis-0.redis-headless, etc.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-headless
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: redis-sentinel
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+    - name: sentinel
+      port: 26379
+      targetPort: sentinel
+---
+# Sentinel discovery service for Sentinel-aware Redis clients (master name: "mymaster")
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-sentinel
+spec:
+  selector:
+    app: redis-sentinel
+  ports:
+    - name: sentinel
+      port: 26379
+      targetPort: sentinel
+---
+# Client service across Redis nodes (read queries or health checks; use Sentinel for master discovery)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis-sentinel
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis

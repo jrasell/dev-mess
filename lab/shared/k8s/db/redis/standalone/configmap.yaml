@@ -1,0 +1,24 @@
+---
+# Redis standalone server configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-standalone-config
+data:
+  redis.conf: |
+    # Redis standalone configuration
+    bind 0.0.0.0
+    port 6379
+    protected-mode no
+
+    # Persistence (AOF + RDB snapshot)
+    dir /data
+    appendonly yes
+    appendfsync everysec
+    save 900 1
+    save 300 10
+    save 60 10000
+
+    # Memory management (adjust for workload)
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru

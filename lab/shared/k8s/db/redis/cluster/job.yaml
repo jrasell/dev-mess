@@ -1,0 +1,55 @@
+---
+# One-shot Job that initializes the 6-node Redis Cluster (3 masters, 1 replica per master).
+# Idempotent: skips creation if the cluster already has slots assigned.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-cluster-init
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app: redis-cluster-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: cluster-init
+          image: redis:8.0-alpine
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              set -eu
+
+              NODES="redis-cluster-0.redis-cluster-headless:6379 \
+                     redis-cluster-1.redis-cluster-headless:6379 \
+                     redis-cluster-2.redis-cluster-headless:6379 \
+                     redis-cluster-3.redis-cluster-headless:6379 \
+                     redis-cluster-4.redis-cluster-headless:6379 \
+                     redis-cluster-5.redis-cluster-headless:6379"
+
+              echo "Waiting for all 6 Redis Cluster pods to respond..."
+              for node in ${NODES}; do
+                host="${node%:*}"
+                until redis-cli -h "${host}" -p 6379 ping 2>/dev/null | grep -q PONG; do
+                  echo "  waiting for ${host}..."
+                  sleep 2
+                done
+              done
+
+              if redis-cli -h redis-cluster-0.redis-cluster-headless -p 6379 cluster info | grep -q "cluster_state:ok"; then
+                echo "Redis Cluster is already initialized and healthy."
+                exit 0
+              fi
+
+              # Resolve current Pod IPs for `redis-cli --cluster create`
+              NODE_IPS=""
+              for i in 0 1 2 3 4 5; do
+                host="redis-cluster-${i}.redis-cluster-headless"
+                ip=$(getent hosts "${host}" | awk '{ print $1 }' | head -n 1)
+                NODE_IPS="${NODE_IPS} ${ip}:6379"
+              done
+
+              echo "Initializing Redis Cluster with nodes:${NODE_IPS}"
+              redis-cli --cluster create ${NODE_IPS} --cluster-replicas 1 --cluster-yes

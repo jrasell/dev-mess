@@ -1,0 +1,16 @@
+---
+# Exposes kube-metrics-server HTTPS endpoint internally for K8s API aggregation
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-metrics-server
+  labels:
+    app: kube-metrics-server
+spec:
+  selector:
+    app: kube-metrics-server
+  ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: https

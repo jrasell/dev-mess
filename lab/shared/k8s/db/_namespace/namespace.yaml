@@ -1,0 +1,6 @@
+---
+# Dedicated namespace for database workloads
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: db

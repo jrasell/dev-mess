@@ -1,0 +1,72 @@
+---
+# Deploys an HA pair of Prometheus servers (2 active-active replicas scraping
+# identical targets independently and forwarding alerts to Alertmanager).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+spec:
+  serviceName: prometheus-headless
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: prometheus
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v3.15.1
+          args:
+            - "--config.file=/etc/prometheus/prometheus-config.yaml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--storage.tsdb.retention.time=7d"
+            - "--web.listen-address=0.0.0.0:9090"
+            - "--web.enable-lifecycle"
+            - "--enable-feature=expand-external-labels"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - name: http
+              containerPort: 9090
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: prometheus-storage
+              mountPath: /prometheus
+      volumes:
+        # Kustomize automatically rewrites `prometheus-config` to the hashed ConfigMap name
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: prometheus-storage
+          emptyDir: {} # Ephemeral storage for learning; swap with volumeClaimTemplates for persistence

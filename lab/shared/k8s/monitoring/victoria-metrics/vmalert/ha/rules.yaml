@@ -1,0 +1,38 @@
+---
+groups:
+  - name: kubernetes-and-monitoring
+    rules:
+      - alert: Watchdog
+        expr: vector(1)
+        labels:
+          severity: none
+        annotations:
+          summary: "Alerting pipeline heartbeat"
+          description: "This is an always-firing alert that verifies the vmalert to Alertmanager pipeline is functional."
+
+      - alert: TargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Scrape target {{ $labels.instance }} is down"
+          description: "Target {{ $labels.instance }} in job {{ $labels.job }} has been unreachable for more than 2 minutes."
+
+      - alert: KubeNodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kubernetes node {{ $labels.node }} is not ready"
+          description: "Node {{ $labels.node }} has been in a non-Ready state for more than 5 minutes."
+
+      - alert: KubePodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[5m]) * 60 > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
+          description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} is restarting frequently."

@@ -1,0 +1,13 @@
+---
+# Exposes Alertmanager HTTP port (UI and v2 Alerting API)
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+spec:
+  selector:
+    app: alertmanager
+  ports:
+    - name: http
+      port: 9093
+      targetPort: http

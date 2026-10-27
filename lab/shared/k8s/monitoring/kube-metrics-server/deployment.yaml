@@ -1,0 +1,64 @@
+---
+# Deploys metrics-server to provide the Kubernetes Resource Metrics API (metrics.k8s.io)
+# used by `kubectl top`, HorizontalPodAutoscaler, and Headlamp's CPU/memory graphs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-metrics-server
+  labels:
+    app: kube-metrics-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-metrics-server
+  template:
+    metadata:
+      labels:
+        app: kube-metrics-server
+    spec:
+      serviceAccountName: kube-metrics-server
+      priorityClassName: system-cluster-critical
+      containers:
+        - name: kube-metrics-server
+          image: registry.k8s.io/metrics-server/metrics-server:v0.9.0
+          args:
+            - "--cert-dir=/tmp"
+            - "--secure-port=10250"
+            - "--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname"
+            - "--kubelet-use-node-status-port"
+            - "--kubelet-insecure-tls" # Required for self-signed kubelet serving certs in lab clusters
+            - "--metric-resolution=15s"
+          ports:
+            - name: https
+              containerPort: 10250
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp-dir
+              mountPath: /tmp
+      volumes:
+        - name: tmp-dir
+          emptyDir: {}

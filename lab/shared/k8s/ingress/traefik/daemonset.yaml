@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: traefik
+spec:
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: traefik
+      containers:
+        - name: traefik
+          image: traefik:v3.7.16
+          args:
+            - "--api.insecure=true"
+            - "--ping=true"
+            - "--providers.kubernetesingress"
+            - "--entrypoints.web.address=:8000"
+            - "--entrypoints.metrics.address=:8082"
+            - "--metrics.prometheus=true"
+            - "--metrics.prometheus.entrypoint=metrics"
+          ports:
+            - name: web
+              containerPort: 8000
+              hostPort: 80
+            - name: dashboard
+              containerPort: 8080
+              hostPort: 8080
+            - name: metrics
+              containerPort: 8082
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8080

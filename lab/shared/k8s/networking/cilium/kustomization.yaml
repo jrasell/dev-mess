@@ -1,0 +1,13 @@
+---
+# Deploys Cilium CNI (eBPF-based networking, observability, and network policy).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: networking
+
+resources:
+  - ../_namespace
+  - rbac.yaml
+  - configmap.yaml
+  - daemonset.yaml
+  - operator.yaml
+  - service.yaml

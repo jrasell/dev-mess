@@ -1,0 +1,13 @@
+---
+# Exposes vmalert HTTP UI and API port across healthy HA replicas
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmalert
+spec:
+  selector:
+    app: vmalert
+  ports:
+    - name: http
+      port: 8880
+      targetPort: http
