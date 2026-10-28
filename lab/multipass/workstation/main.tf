@@ -1,5 +1,6 @@
 module "workstation" {
   source             = "../../shared/terraform/multipass-compute"
+  instance_image     = "trixie"
   instance_ssh_key   = file("~/.ssh/id_rsa.pub")
   ansible_group_name = "workstation"
 }
@@ -16,8 +17,5 @@ output "details" {
   value = <<EOH
 SSH commands:
   Workstation: ssh ${module.workstation.instance_ips[0]}
-
-Rsync commands:
-  Workstation: rsync -r --exclude '*/node_modules/*' /Users/jrasell/Projects/Go/nomad jrasell@${module.workstation.instance_ips[0]}:/home/jrasell/
 EOH
 }
