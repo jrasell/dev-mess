@@ -5,7 +5,6 @@ metadata:
   name: victoriametrics
   namespace: monitoring
 spec:
-  ingressClassName: traefik
   rules:
     - host: "*.victoriametrics.jrasell.test"
       http:

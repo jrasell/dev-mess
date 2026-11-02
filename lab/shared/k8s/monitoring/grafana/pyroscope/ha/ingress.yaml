@@ -5,7 +5,6 @@ metadata:
   name: pyroscope
   namespace: monitoring
 spec:
-  ingressClassName: traefik
   rules:
     - host: "*.pyroscope.jrasell.test"
       http:

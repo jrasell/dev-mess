@@ -4,7 +4,6 @@ kind: Ingress
 metadata:
   name: vault
 spec:
-  ingressClassName: traefik
   rules:
     - host: "*.vault.jrasell.test"
       http:

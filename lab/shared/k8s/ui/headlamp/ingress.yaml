@@ -5,7 +5,6 @@ metadata:
   name: headlamp
   namespace: ui
 spec:
-  ingressClassName: traefik
   rules:
     - host: "*.headlamp.jrasell.test"
       http:

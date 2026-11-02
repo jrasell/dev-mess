@@ -5,7 +5,6 @@ metadata:
   name: hubble-ui
   namespace: networking
 spec:
-  ingressClassName: traefik
   rules:
     - host: "*.hubble.jrasell.test"
       http:
