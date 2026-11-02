@@ -153,3 +153,10 @@ scrape_configs:
         target_label: namespace
       - source_labels: [__meta_kubernetes_pod_name]
         target_label: pod
+      - source_labels: [__meta_kubernetes_pod_label_app, __meta_kubernetes_pod_label_k8s_app]
+        separator: ;
+        regex: ^;?([^;]+).*$
+        replacement: $1
+        target_label: app
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
