@@ -55,8 +55,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "time() - node_boot_time_seconds{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
+          "expr": "time() - node_boot_time_seconds{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "{{node}}",
           "refId": "A"
         }
       ],
@@ -90,8 +90,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "count(node_cpu_seconds_total{mode=\"idle\", instance=~\"$instance\"}) by (instance)",
-          "legendFormat": "{{instance}}",
+          "expr": "count(node_cpu_seconds_total{app=\"node-exporter\", mode=\"idle\", node=~\"$node\"}) by (node)",
+          "legendFormat": "{{node}}",
           "refId": "A"
         }
       ],
@@ -129,8 +129,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\", instance=~\"$instance\"}[$__rate_interval])) * 100)",
-          "legendFormat": "{{instance}}",
+          "expr": "100 - (avg by (node) (rate(node_cpu_seconds_total{app=\"node-exporter\", mode=\"idle\", node=~\"$node\"}[$__rate_interval])) * 100)",
+          "legendFormat": "{{node}}",
           "refId": "A"
         }
       ],
@@ -168,8 +168,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "(1 - (node_memory_MemAvailable_bytes{instance=~\"$instance\"} / node_memory_MemTotal_bytes{instance=~\"$instance\"})) * 100",
-          "legendFormat": "{{instance}}",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{app=\"node-exporter\", node=~\"$node\"} / node_memory_MemTotal_bytes{app=\"node-exporter\", node=~\"$node\"})) * 100",
+          "legendFormat": "{{node}}",
           "refId": "A"
         }
       ],
@@ -203,8 +203,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_memory_MemTotal_bytes{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
+          "expr": "node_memory_MemTotal_bytes{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "{{node}}",
           "refId": "A"
         }
       ],
@@ -242,8 +242,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "(1 - (node_filesystem_avail_bytes{instance=~\"$instance\", mountpoint=\"/\", fstype!=\"rootfs\"} / node_filesystem_size_bytes{instance=~\"$instance\", mountpoint=\"/\", fstype!=\"rootfs\"})) * 100",
-          "legendFormat": "{{instance}}",
+          "expr": "(1 - (node_filesystem_avail_bytes{app=\"node-exporter\", node=~\"$node\", mountpoint=\"/\", fstype!=\"rootfs\"} / node_filesystem_size_bytes{app=\"node-exporter\", node=~\"$node\", mountpoint=\"/\", fstype!=\"rootfs\"})) * 100",
+          "legendFormat": "{{node}}",
           "refId": "A"
         }
       ],
@@ -278,8 +278,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "avg by (mode, instance) (rate(node_cpu_seconds_total{mode!=\"idle\", instance=~\"$instance\"}[$__rate_interval])) * 100",
-          "legendFormat": "{{mode}} ({{instance}})",
+          "expr": "avg by (mode, node) (rate(node_cpu_seconds_total{app=\"node-exporter\", mode!=\"idle\", node=~\"$node\"}[$__rate_interval])) * 100",
+          "legendFormat": "{{mode}} ({{node}})",
           "refId": "A"
         }
       ],
@@ -304,20 +304,20 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_load1{instance=~\"$instance\"}",
-          "legendFormat": "1m ({{instance}})",
+          "expr": "node_load1{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "1m ({{node}})",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_load5{instance=~\"$instance\"}",
-          "legendFormat": "5m ({{instance}})",
+          "expr": "node_load5{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "5m ({{node}})",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_load15{instance=~\"$instance\"}",
-          "legendFormat": "15m ({{instance}})",
+          "expr": "node_load15{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "15m ({{node}})",
           "refId": "C"
         }
       ],
@@ -342,26 +342,26 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_memory_MemTotal_bytes{instance=~\"$instance\"}",
-          "legendFormat": "Total ({{instance}})",
+          "expr": "node_memory_MemTotal_bytes{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "Total ({{node}})",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_memory_MemTotal_bytes{instance=~\"$instance\"} - node_memory_MemAvailable_bytes{instance=~\"$instance\"}",
-          "legendFormat": "Used ({{instance}})",
+          "expr": "node_memory_MemTotal_bytes{app=\"node-exporter\", node=~\"$node\"} - node_memory_MemAvailable_bytes{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "Used ({{node}})",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_memory_Cached_bytes{instance=~\"$instance\"} + node_memory_Buffers_bytes{instance=~\"$instance\"}",
-          "legendFormat": "Buffers + Cache ({{instance}})",
+          "expr": "node_memory_Cached_bytes{app=\"node-exporter\", node=~\"$node\"} + node_memory_Buffers_bytes{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "Buffers + Cache ({{node}})",
           "refId": "C"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_memory_MemAvailable_bytes{instance=~\"$instance\"}",
-          "legendFormat": "Available ({{instance}})",
+          "expr": "node_memory_MemAvailable_bytes{app=\"node-exporter\", node=~\"$node\"}",
+          "legendFormat": "Available ({{node}})",
           "refId": "D"
         }
       ],
@@ -394,14 +394,14 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "sum by (instance, device) (rate(node_disk_read_bytes_total{instance=~\"$instance\", device!~\"loop.*|ram.*|sr.*\"}[$__rate_interval]))",
-          "legendFormat": "Read {{device}} ({{instance}})",
+          "expr": "sum by (node, device) (rate(node_disk_read_bytes_total{app=\"node-exporter\", node=~\"$node\", device!~\"loop.*|ram.*|sr.*\"}[$__rate_interval]))",
+          "legendFormat": "Read {{device}} ({{node}})",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "sum by (instance, device) (rate(node_disk_written_bytes_total{instance=~\"$instance\", device!~\"loop.*|ram.*|sr.*\"}[$__rate_interval]))",
-          "legendFormat": "Write {{device}} ({{instance}})",
+          "expr": "sum by (node, device) (rate(node_disk_written_bytes_total{app=\"node-exporter\", node=~\"$node\", device!~\"loop.*|ram.*|sr.*\"}[$__rate_interval]))",
+          "legendFormat": "Write {{device}} ({{node}})",
           "refId": "B"
         }
       ],
@@ -426,8 +426,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "node_filesystem_avail_bytes{instance=~\"$instance\", fstype!~\"tmpfs|overlay|squashfs|nsfs\"}",
-          "legendFormat": "{{mountpoint}} ({{instance}})",
+          "expr": "node_filesystem_avail_bytes{app=\"node-exporter\", node=~\"$node\", fstype!~\"tmpfs|overlay|squashfs|nsfs\"}",
+          "legendFormat": "{{mountpoint}} ({{node}})",
           "refId": "A"
         }
       ],
@@ -452,14 +452,14 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "rate(node_network_receive_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|lxc.*|cilium.*|flannel.*|cni.*\"}[$__rate_interval])",
-          "legendFormat": "Rx {{device}} ({{instance}})",
+          "expr": "rate(node_network_receive_bytes_total{app=\"node-exporter\", node=~\"$node\", device!~\"lo|veth.*|lxc.*|cilium.*|flannel.*|cni.*\"}[$__rate_interval])",
+          "legendFormat": "Rx {{device}} ({{node}})",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "rate(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|lxc.*|cilium.*|flannel.*|cni.*\"}[$__rate_interval])",
-          "legendFormat": "Tx {{device}} ({{instance}})",
+          "expr": "rate(node_network_transmit_bytes_total{app=\"node-exporter\", node=~\"$node\", device!~\"lo|veth.*|lxc.*|cilium.*|flannel.*|cni.*\"}[$__rate_interval])",
+          "legendFormat": "Tx {{device}} ({{node}})",
           "refId": "B"
         }
       ],
@@ -488,15 +488,15 @@
       {
         "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
         "datasource": { "type": "prometheus", "uid": "${datasource}" },
-        "definition": "label_values(node_uname_info, instance)",
+        "definition": "label_values(node_uname_info{app=\"node-exporter\"}, node)",
         "hide": 0,
         "includeAll": true,
-        "label": "Instance",
+        "label": "Node",
         "multi": true,
-        "name": "instance",
+        "name": "node",
         "options": [],
         "query": {
-          "query": "label_values(node_uname_info, instance)",
+          "query": "label_values(node_uname_info{app=\"node-exporter\"}, node)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,

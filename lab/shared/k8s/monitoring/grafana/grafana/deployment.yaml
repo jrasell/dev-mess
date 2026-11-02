@@ -65,6 +65,9 @@ spec:
             - name: grafana-dashboard-k8s-cilium
               mountPath: /etc/grafana/dashboards/k8s-cilium
               readOnly: true
+            - name: grafana-dashboard-k8s-flannel
+              mountPath: /etc/grafana/dashboards/k8s-flannel
+              readOnly: true
             - name: grafana-dashboard-k8s-global
               mountPath: /etc/grafana/dashboards/k8s-global
               readOnly: true
@@ -79,6 +82,9 @@ spec:
               readOnly: true
             - name: grafana-dashboard-node-exporter
               mountPath: /etc/grafana/dashboards/node-exporter
+              readOnly: true
+            - name: grafana-dashboard-nginx
+              mountPath: /etc/grafana/dashboards/nginx
               readOnly: true
             - name: grafana-dashboard-traefik
               mountPath: /etc/grafana/dashboards/traefik
@@ -104,6 +110,9 @@ spec:
         - name: grafana-dashboard-k8s-cilium
           configMap:
             name: grafana-dashboard-k8s-cilium
+        - name: grafana-dashboard-k8s-flannel
+          configMap:
+            name: grafana-dashboard-k8s-flannel
         - name: grafana-dashboard-k8s-global
           configMap:
             name: grafana-dashboard-k8s-global
@@ -119,6 +128,9 @@ spec:
         - name: grafana-dashboard-node-exporter
           configMap:
             name: grafana-dashboard-node-exporter
+        - name: grafana-dashboard-nginx
+          configMap:
+            name: grafana-dashboard-nginx
         - name: grafana-dashboard-traefik
           configMap:
             name: grafana-dashboard-traefik

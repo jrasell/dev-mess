@@ -27,6 +27,9 @@ configMapGenerator:
   - name: grafana-dashboard-k8s-cilium
     files:
       - dashboards/k8s-cilium.json
+  - name: grafana-dashboard-k8s-flannel
+    files:
+      - dashboards/k8s-flannel.json
   - name: grafana-dashboard-k8s-global
     files:
       - dashboards/k8s-global.json
@@ -42,6 +45,9 @@ configMapGenerator:
   - name: grafana-dashboard-node-exporter
     files:
       - dashboards/node-exporter.json
+  - name: grafana-dashboard-nginx
+    files:
+      - dashboards/nginx.json
   - name: grafana-dashboard-traefik
     files:
       - dashboards/traefik.json
