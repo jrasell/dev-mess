@@ -1,5 +1,4 @@
 ---
-# Dedicated namespace for the Traefik ingress controller
 apiVersion: v1
 kind: Namespace
 metadata:
