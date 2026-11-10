@@ -1,0 +1,15 @@
+---
+# Headless service exposing Promtail pods across cluster nodes
+apiVersion: v1
+kind: Service
+metadata:
+  name: promtail
+spec:
+  clusterIP: None
+  selector:
+    app: promtail
+  ports:
+    - name: http
+      port: 9080
+      targetPort: http
+      protocol: TCP

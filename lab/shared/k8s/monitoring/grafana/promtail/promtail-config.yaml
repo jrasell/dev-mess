@@ -1,0 +1,209 @@
+---
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /run/promtail/positions.yaml
+
+clients:
+  - url: ${PROMTAIL_CLIENT_URL}
+
+scrape_configs:
+  # Discover all pods across all namespaces and tail logs for pods scheduled
+  # on the same node as this Promtail instance.
+  - job_name: kubernetes-pods
+    pipeline_stages:
+      - cri: {}
+
+      # 1. If the container already logs in JSON, normalize field names and
+      #    severity values in-place while preserving all existing JSON keys.
+      - replace:
+          expression: '"(@level|lvl|severity)"\s*:'
+          replace: 'level'
+      - replace:
+          expression: '"(@message|message|log)"\s*:'
+          replace: 'msg'
+      - replace:
+          expression: '"(@timestamp|time|t)"\s*:'
+          replace: 'ts'
+      - replace:
+          expression: '"(@module|logger|subsys)"\s*:'
+          replace: 'component'
+      # Kubernetes structured JSON logs (klog) use "v" instead of "level".
+      - replace:
+          expression: '^\s*\{.*"msg"\s*:.*("v"\s*:)\s*\d+'
+          replace: '"level":"info","v":'
+      # Standardize level values to lowercase (debug, info, warn, error, fatal).
+      - replace:
+          expression: '"level"\s*:\s*"(?i)(dbg|debug|trace)"'
+          replace: 'debug'
+      - replace:
+          expression: '"level"\s*:\s*"(?i)(info|information|notice)"'
+          replace: 'info'
+      - replace:
+          expression: '"level"\s*:\s*"(?i)(warn|warning)"'
+          replace: 'warn'
+      - replace:
+          expression: '"level"\s*:\s*"(?i)(err|error)"'
+          replace: 'error'
+      - replace:
+          expression: '"level"\s*:\s*"(?i)(fatal|panic|crit|critical)"'
+          replace: 'fatal'
+
+      # 2. If the container logs in plain text (klog, logfmt, Redis, Postgres, etc.),
+      #    extract structured metadata where possible and wrap into standard JSON.
+      - regex:
+          expression: '^\s*(?P<raw_text>[^{].*)$'
+      - regex:
+          source: raw_text
+          expression: '^(?P<msg>.*)$'
+      # Parse klog lines: I1102 12:00:00.000000 1 server.go:123] message
+      - regex:
+          source: raw_text
+          expression: '^(?P<klog_level>[IWEF])\d{4}\s+\S+\s+\d+\s+(?P<caller>[^\]]+)\]\s*(?P<msg>.*)$'
+      # Parse Postgres lines: 2026-11-02 12:00:00.000 UTC [1] LOG:  message
+      - regex:
+          source: raw_text
+          expression: '^\d{4}-\d{2}-\d{2}\s+\S+\s+\S+\s+\[\d+\]\s+(?P<pg_level>DEBUG|INFO|NOTICE|LOG|WARNING|ERROR|FATAL|PANIC):\s+(?P<msg>.*)$'
+      # Parse Redis lines: 1:M 02 Nov 2026 12:00:00.000 * message
+      - regex:
+          source: raw_text
+          expression: '^\d+:[A-Z]\s+\d+\s+\w+\s+\d{4}\s+\S+\s+(?P<redis_level>[.\-*#])\s+(?P<msg>.*)$'
+      # Parse logfmt lines: level=info msg="hello" caller=main.go:1 subsys=foo
+      - regex:
+          source: raw_text
+          expression: '(?:^|\s)level=(?:"(?P<logfmt_level>[^"]+)"|(?P<logfmt_level_raw>\S+))'
+      - regex:
+          source: raw_text
+          expression: '(?:^|\s)msg=(?:"(?P<logfmt_msg>[^"]+)"|(?P<logfmt_msg_raw>\S+))'
+      - regex:
+          source: raw_text
+          expression: '(?:^|\s)caller=(?:"(?P<caller>[^"]+)"|(?P<caller_raw>\S+))'
+      - regex:
+          source: raw_text
+          expression: '(?:^|\s)subsys=(?:"(?P<component>[^"]+)"|(?P<component_raw>\S+))'
+      - template:
+          source: caller
+          template: '{{ if .caller }}{{ .caller }}{{ else }}{{ .caller_raw }}{{ end }}'
+      - template:
+          source: component
+          template: '{{ if .component }}{{ .component }}{{ else }}{{ .component_raw }}{{ end }}'
+      - template:
+          source: msg
+          template: '{{ if .logfmt_msg }}{{ .logfmt_msg }}{{ else if .logfmt_msg_raw }}{{ .logfmt_msg_raw }}{{ else }}{{ .Value }}{{ end }}'
+      - template:
+          source: level
+          template: >-
+            {{- if .logfmt_level -}}{{ ToLower .logfmt_level }}
+            {{- else if .logfmt_level_raw -}}{{ ToLower .logfmt_level_raw }}
+            {{- else if eq .klog_level "W" -}}warn
+            {{- else if eq .klog_level "E" -}}error
+            {{- else if eq .klog_level "F" -}}fatal
+            {{- else if eq .pg_level "DEBUG" -}}debug
+            {{- else if eq .pg_level "WARNING" -}}warn
+            {{- else if eq .pg_level "ERROR" -}}error
+            {{- else if or (eq .pg_level "FATAL") (eq .pg_level "PANIC") -}}fatal
+            {{- else if eq .redis_level "." -}}debug
+            {{- else if eq .redis_level "#" -}}warn
+            {{- else -}}info{{- end -}}
+      - template:
+          source: level
+          template: '{{ if eq .Value "warning" }}warn{{ else }}{{ .Value }}{{ end }}'
+      - template:
+          source: msg
+          template: '{{ Replace (Replace .Value `\` `\\` -1) `"` `\"` -1 }}'
+      - template:
+          source: raw_text
+          template: '{{ if .raw_text }}{"level":"{{ .level }}"{{ if .component }},"component":"{{ .component }}"{{ end }}{{ if .caller }},"caller":"{{ .caller }}"{{ end }},"msg":"{{ .msg }}"}{{ end }}'
+      - output:
+          source: raw_text
+
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: __host__
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_container_name]
+        target_label: container
+      - source_labels:
+          - __meta_kubernetes_pod_label_app
+          - __meta_kubernetes_pod_label_k8s_app
+          - __meta_kubernetes_pod_label_component
+        separator: ;
+        regex: ^;?([^;]+).*$
+        replacement: $1
+        target_label: app
+      - source_labels: [__meta_kubernetes_namespace, app]
+        separator: /
+        replacement: $1
+        target_label: job
+      # Static pods use kubernetes.io/config.hash in /var/log/pods while regular
+      # pods use the pod UID.
+      - source_labels:
+          - __meta_kubernetes_pod_annotation_kubernetes_io_config_hash
+          - __meta_kubernetes_pod_uid
+          - __meta_kubernetes_pod_container_name
+        action: replace
+        separator: ;
+        regex: ^;?([^;]+)(?:;[^;]+)?;([^;]+)$
+        replacement: /var/log/pods/*$1/$2/*.log
+        target_label: __path__
+
+  # Tail host-level syslog (kubelet, containerd, kernel, and OS logs).
+  - job_name: syslog
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<msg>.*)$'
+      - regex:
+          expression: '^(?:[A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2}|\d{4}-\d{2}-\d{2}T\S+)\s+\S+\s+(?P<component>[^:\[\s]+)(?:\[\d+\])?:\s*(?P<msg>.*)$'
+      # Unwrap syslog payloads that are already JSON (e.g. kubelet) or logfmt
+      # (e.g. containerd) so they are not double-encoded.
+      - json:
+          source: msg
+          expressions:
+            json_level: level
+            json_msg: msg
+            caller: caller
+            json_err: err
+      - regex:
+          source: msg
+          expression: '(?:^|\s)level=(?:"(?P<logfmt_level>[^"]+)"|(?P<logfmt_level_raw>\S+))'
+      - regex:
+          source: msg
+          expression: '(?:^|\s)msg=(?:"(?P<logfmt_msg>[^"]+)"|(?P<logfmt_msg_raw>\S+))'
+      - template:
+          source: msg
+          template: '{{ if .json_msg }}{{ .json_msg }}{{ else if .logfmt_msg }}{{ .logfmt_msg }}{{ else if .logfmt_msg_raw }}{{ .logfmt_msg_raw }}{{ else }}{{ .Value }}{{ end }}'
+      - template:
+          source: level
+          template: >-
+            {{- if .json_level -}}{{ ToLower .json_level }}
+            {{- else if .json_err -}}error
+            {{- else if .logfmt_level -}}{{ ToLower .logfmt_level }}
+            {{- else if .logfmt_level_raw -}}{{ ToLower .logfmt_level_raw }}
+            {{- else -}}info{{- end -}}
+      - template:
+          source: level
+          template: '{{ if eq .Value "warning" }}warn{{ else }}{{ .Value }}{{ end }}'
+      - template:
+          source: msg
+          template: '{{ Replace (Replace .Value `\` `\\` -1) `"` `\"` -1 }}'
+      - template:
+          source: msg
+          template: '{"level":"{{ .level }}"{{ if .component }},"component":"{{ .component }}"{{ end }}{{ if .caller }},"caller":"{{ .caller }}"{{ end }},"msg":"{{ .Value }}"}'
+      - output:
+          source: msg
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          node: ${HOSTNAME}
+          __path__: /var/log/syslog

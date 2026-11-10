@@ -1,0 +1,27 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+
+resources:
+  - ../../_namespace
+  - ../../victoria-metrics/victoria-logs/standalone
+  - ../../grafana/promtail
+
+patches:
+  - target:
+      kind: DaemonSet
+      name: promtail
+    patch: |-
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: promtail
+      spec:
+        template:
+          spec:
+            containers:
+              - name: promtail
+                env:
+                  - name: PROMTAIL_CLIENT_URL
+                    value: "http://victorialogs.monitoring.svc.cluster.local:9428/insert/loki/api/v1/push?_stream_fields=node,namespace,pod,container,app,job"

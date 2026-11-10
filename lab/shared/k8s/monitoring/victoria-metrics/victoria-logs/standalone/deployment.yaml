@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: victorialogs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: victorialogs
+  template:
+    metadata:
+      labels:
+        app: victorialogs
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9428"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: victorialogs
+          image: victoriametrics/victoria-logs:v1.53.0
+          args:
+            - "-storageDataPath=/storage"
+            - "-retentionPeriod=7d"
+            - "-loggerFormat=json"
+          ports:
+            - name: http
+              containerPort: 9428
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9428
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9428
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: vl-storage
+              mountPath: /storage
+      volumes:
+        - name: vl-storage
+          emptyDir: {}

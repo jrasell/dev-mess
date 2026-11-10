@@ -1,0 +1,32 @@
+---
+# Identity for Promtail so it can discover Kubernetes pods and nodes
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail
+
+---
+# Permissions allowing Promtail to list and watch nodes, services, endpoints, and pods
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: promtail
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+
+---
+# Binds the ClusterRole to the Promtail ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: promtail
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: promtail
+subjects:
+  - kind: ServiceAccount
+    name: promtail
+    namespace: monitoring

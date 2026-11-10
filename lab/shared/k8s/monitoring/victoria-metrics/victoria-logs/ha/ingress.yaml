@@ -1,0 +1,18 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: victorialogs
+  namespace: monitoring
+spec:
+  rules:
+    - host: "*.victorialogs.jrasell.test"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: victorialogs
+                port:
+                  number: 9428
