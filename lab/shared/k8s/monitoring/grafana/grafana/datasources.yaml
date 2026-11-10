@@ -1,8 +1,8 @@
 ---
 # Pre-provisioned Grafana datasources for the monitoring namespace.
 # Prometheus is set as the default datasource; VictoriaMetrics, Alertmanager,
-# and Pyroscope are also pre-configured so Grafana works out of the box with
-# any monitoring option.
+# Loki, VictoriaLogs, and Pyroscope are also pre-configured so Grafana works out
+# of the box with any monitoring option.
 apiVersion: 1
 
 datasources:
@@ -32,6 +32,22 @@ datasources:
     jsonData:
       implementation: prometheus
       handleGrafanaManagedAlerts: false
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki.monitoring.svc.cluster.local:3100
+    isDefault: false
+    editable: true
+
+  - name: VictoriaLogs
+    type: victoriametrics-logs-datasource
+    uid: victorialogs
+    access: proxy
+    url: http://victorialogs.monitoring.svc.cluster.local:9428
+    isDefault: false
+    editable: true
 
   - name: Pyroscope
     type: grafana-pyroscope-datasource

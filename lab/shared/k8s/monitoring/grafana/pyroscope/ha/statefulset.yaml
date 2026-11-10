@@ -38,6 +38,7 @@ spec:
             - "-distributor.ring.instance-addr=$(POD_IP)"
             - "-store-gateway.sharding-ring.instance-addr=$(POD_IP)"
             - "-compactor.ring.instance-addr=$(POD_IP)"
+            - "-log.format=json"
           env:
             - name: POD_IP
               valueFrom:

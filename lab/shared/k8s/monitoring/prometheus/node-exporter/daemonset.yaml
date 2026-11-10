@@ -32,6 +32,7 @@ spec:
             - "--path.rootfs=/host/root"
             - "--web.listen-address=0.0.0.0:9100"
             - "--collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)"
+            - "--log.format=json"
           ports:
             - name: metrics
               containerPort: 9100

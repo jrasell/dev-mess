@@ -33,6 +33,7 @@ spec:
             - "-storageNode=vmstorage-0.vmstorage.monitoring.svc.cluster.local:8401,vmstorage-1.vmstorage.monitoring.svc.cluster.local:8401"
             - "-replicationFactor=2"
             - "-dedup.minScrapeInterval=15s"
+            - "-loggerFormat=json"
           ports:
             - name: http
               containerPort: 8481

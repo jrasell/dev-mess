@@ -9,6 +9,7 @@ metadata:
   namespace: networking
 data:
   debug: "false"
+  log-opt: '{"format":"json"}'
 
   # IPAM mode:
   # - "kubernetes": Uses the per-node PodCIDR allocated by kubeadm (10.244.0.0/16).
@@ -17,12 +18,12 @@ data:
   cluster-pool-ipv4-cidr: "10.244.0.0/16"
   cluster-pool-ipv4-mask-size: "24"
 
-  # Use native routing.
-  #
-  #
-  routing-mode: "native"
-  auto-direct-node-routes: "true"
+  routing-mode: "tunnel"
+  tunnel-protocol: "vxlan"
+  auto-direct-node-routes: "false"
   ipv4-native-routing-cidr: "10.244.0.0/16"
+
+  bpf-lb-mode: "snat"
 
   enable-ipv4: "true"
   enable-ipv6: "false"

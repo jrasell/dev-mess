@@ -37,6 +37,7 @@ spec:
             - "--web.listen-address=0.0.0.0:9090"
             - "--web.enable-lifecycle"
             - "--enable-feature=expand-external-labels"
+            - "--log.format=json"
           env:
             - name: POD_NAME
               valueFrom:

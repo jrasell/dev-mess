@@ -32,6 +32,7 @@ spec:
           args:
             - "-storageNode=vmstorage-0.vmstorage.monitoring.svc.cluster.local:8400,vmstorage-1.vmstorage.monitoring.svc.cluster.local:8400"
             - "-replicationFactor=2"
+            - "-loggerFormat=json"
           ports:
             - name: http
               containerPort: 8480

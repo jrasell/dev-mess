@@ -29,6 +29,7 @@ spec:
             - "--kubelet-use-node-status-port"
             - "--kubelet-insecure-tls" # Required for self-signed kubelet serving certs in lab clusters
             - "--metric-resolution=15s"
+            - "--logging-format=json"
           ports:
             - name: https
               containerPort: 10250

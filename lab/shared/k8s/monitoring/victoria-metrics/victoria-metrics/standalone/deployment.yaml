@@ -21,6 +21,7 @@ spec:
             - "-storageDataPath=/storage"
             - "-promscrape.config=/config/victoriametrics-config.yaml"
             - "-retentionPeriod=7d"
+            - "-loggerFormat=json"
           env:
             - name: VM_METRICS_PATH
               value: "/metrics"

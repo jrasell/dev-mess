@@ -34,6 +34,7 @@ spec:
             - "-promscrape.config=/config/vmagent-config.yaml"
             - "-remoteWrite.url=http://vminsert.monitoring.svc.cluster.local:8480/insert/0/prometheus/api/v1/write"
             - "-remoteWrite.tmpDataPath=/tmpData"
+            - "-loggerFormat=json"
           ports:
             - name: http
               containerPort: 8429

@@ -11,4 +11,6 @@ resources:
   - ../../prometheus/prometheus/ha
   - ../../prometheus/alertmanager/ha
   - ../../grafana/grafana
+  - ../../grafana/loki/ha
+  - ../../grafana/promtail
   - ../../grafana/pyroscope/ha

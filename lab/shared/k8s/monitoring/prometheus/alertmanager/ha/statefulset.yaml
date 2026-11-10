@@ -37,6 +37,7 @@ spec:
             - "--cluster.peer=alertmanager-0.alertmanager-headless.monitoring.svc.cluster.local:9094"
             - "--cluster.peer=alertmanager-1.alertmanager-headless.monitoring.svc.cluster.local:9094"
             - "--cluster.peer=alertmanager-2.alertmanager-headless.monitoring.svc.cluster.local:9094"
+            - "--log.format=json"
           env:
             - name: POD_IP
               valueFrom:

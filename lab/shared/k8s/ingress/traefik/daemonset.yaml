@@ -28,6 +28,9 @@ spec:
             - "--entrypoints.metrics.address=:8082"
             - "--metrics.prometheus=true"
             - "--metrics.prometheus.entrypoint=metrics"
+            - "--log.format=json"
+            - "--accesslog=true"
+            - "--accesslog.format=json"
           ports:
             - name: web
               containerPort: 8000

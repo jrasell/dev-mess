@@ -27,6 +27,7 @@ spec:
             - "-enable-prometheus-metrics=true"
             - "-prometheus-metrics-listen-port=9113"
             - "-enable-latency-metrics=true"
+            - "-log-format=json"
           env:
             - name: POD_NAMESPACE
               valueFrom:

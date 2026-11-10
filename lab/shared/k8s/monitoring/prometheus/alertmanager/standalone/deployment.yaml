@@ -21,6 +21,7 @@ spec:
             - "--storage.path=/alertmanager"
             - "--web.listen-address=0.0.0.0:9093"
             - "--cluster.listen-address=" # Disable gossip cluster listener in standalone mode
+            - "--log.format=json"
           ports:
             - name: http
               containerPort: 9093

@@ -29,6 +29,7 @@ spec:
             - "-remoteWrite.url=http://victoriametrics.monitoring.svc.cluster.local:8428"
             - "-notifier.url=http://alertmanager.monitoring.svc.cluster.local:9093"
             - "-evaluationInterval=15s"
+            - "-loggerFormat=json"
           ports:
             - name: http
               containerPort: 8880

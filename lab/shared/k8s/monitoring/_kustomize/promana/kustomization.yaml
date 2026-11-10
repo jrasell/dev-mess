@@ -11,4 +11,6 @@ resources:
   - ../../prometheus/prometheus/standalone
   - ../../prometheus/alertmanager/standalone
   - ../../grafana/grafana
+  - ../../grafana/loki/standalone
+  - ../../grafana/promtail
   - ../../grafana/pyroscope/standalone
