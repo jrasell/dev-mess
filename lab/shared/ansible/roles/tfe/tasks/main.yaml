@@ -1,0 +1,99 @@
+- name: "validate_tfe_license"
+  ansible.builtin.assert:
+    that:
+      - tfe_license | length > 0
+    fail_msg: "TFE license must be provided via TFE_LICENSE, TFE_LICENSE_PATH, or -e tfe_license=..."
+
+- name: "create_tfe_directories"
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - path: "{{ tfe_install_dir }}"
+    - path: "{{ tfe_install_dir }}/certs"
+      mode: "0755"
+  notify: "restart_terraform_enterprise"
+
+- name: "copy_tls_certificates"
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "root"
+    group: "root"
+    mode: "{{ item.mode }}"
+  loop:
+    - src: "{{ tfe_tls_cert }}"
+      dest: "{{ tfe_install_dir }}/certs/cert.pem"
+      mode: "0644"
+    - src: "{{ tfe_tls_cert_key }}"
+      dest: "{{ tfe_install_dir }}/certs/key.pem"
+      mode: "0644"
+    - src: "{{ tfe_tls_ca_cert }}"
+      dest: "{{ tfe_install_dir }}/certs/bundle.pem"
+      mode: "0644"
+  notify: "restart_terraform_enterprise"
+
+- name: "login_to_tfe_registry"
+  become: true
+  ansible.builtin.command:
+    cmd: "docker login --username terraform images.releases.hashicorp.com --password-stdin"
+    stdin: "{{ tfe_license }}"
+  changed_when: false
+  no_log: true
+
+- name: "pull_tfe_image"
+  become: true
+  ansible.builtin.command:
+    cmd: "docker pull images.releases.hashicorp.com/hashicorp/terraform-enterprise:{{ tfe_version }}"
+  register: docker_pull
+  changed_when: "'Downloaded newer image' in docker_pull.stdout"
+
+- name: "write_compose_configuration"
+  become: true
+  ansible.builtin.template:
+    src: "{{ tfe_compose_template }}"
+    dest: "{{ tfe_install_dir }}/compose.yaml"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  notify: "restart_terraform_enterprise"
+
+- name: "write_systemd_service"
+  become: true
+  ansible.builtin.template:
+    src: "terraform-enterprise.service.j2"
+    dest: "/etc/systemd/system/terraform-enterprise.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+    - "reload_systemd"
+    - "restart_terraform_enterprise"
+
+- name: "enable_and_start_terraform_enterprise"
+  become: true
+  ansible.builtin.systemd:
+    name: "terraform-enterprise"
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: "flush_terraform_enterprise_handlers"
+  ansible.builtin.meta: flush_handlers
+
+- name: "wait_for_terraform_enterprise_ready"
+  ansible.builtin.uri:
+    url: "https://127.0.0.1/api/v1/health/readiness"
+    headers:
+      Host: "{{ tfe_hostname }}"
+    validate_certs: false
+    status_code: 200
+  register: tfe_health
+  until: tfe_health.status == 200
+  retries: 60
+  delay: 5

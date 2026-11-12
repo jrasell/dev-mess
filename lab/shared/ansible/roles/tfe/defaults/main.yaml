@@ -1,0 +1,22 @@
+tfe_version: "2.1.1"
+tfe_install_dir: "/etc/terraform-enterprise"
+tfe_compose_template: ""
+tfe_hostname: ""
+
+# The TFE license is required to install TFE. It can be provided in one of two
+# ways:
+#   * By setting the TFE_LICENSE environment variable to the license string.
+#   * By setting the TFE_LICENSE_PATH environment variable to the path of a file
+#     containing the license string
+#
+# If neither of these are provided, the role will fail with an error message.
+tfe_license: >-
+  {{ lookup('ansible.builtin.env', 'TFE_LICENSE') | default(
+       (lookup('ansible.builtin.file', lookup('ansible.builtin.env', 'TFE_LICENSE_PATH'), errors='ignore')
+        if lookup('ansible.builtin.env', 'TFE_LICENSE_PATH') != '' else ''),
+       true
+     ) | trim }}
+
+tfe_tls_ca_cert: ""
+tfe_tls_cert: ""
+tfe_tls_cert_key: ""
