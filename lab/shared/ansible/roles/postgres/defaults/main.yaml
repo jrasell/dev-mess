@@ -9,3 +9,13 @@ postgres_suppress_initdb: false
 # Whether to start the PostgreSQL service after installation. If set to false,
 # the service will be stopped and disabled.
 postgres_start_service: true
+
+# The listen addresses for PostgreSQL. This can be a comma-separated list of
+# addresses or hostnames, or '*' to listen on all interfaces. The default is
+# 'localhost' which means PostgreSQL will only listen on the loopback interface.
+postgres_listen_addresses: "localhost"
+
+postgres_user: "postgres"
+postgres_password: "postgres"
+postgres_db: "postgres"
+postgres_hba_entries: []
