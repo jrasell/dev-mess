@@ -1,0 +1,59 @@
+- hosts: tfe
+  vars:
+
+    # I use SSLIP locally to provide local DNS resolution for the TFE hostname,
+    # so this will likely need to change depending on your local DNS setup.
+    tfe_hostname: "{{ ansible_facts['default_ipv4']['address'] | replace('.', '-') }}.jrasell.test"
+    tfe_encryption_password: "lab-encryption-password"
+
+    postgres_user: "postgres"
+    postgres_password: "postgres"
+    postgres_db: "postgres"
+
+    rustfs_region: "mse1"
+    rustfs_bucket: "tfe"
+    rustfs_access_key: "rustfsadmin"
+    rustfs_secret_key: "rustfsadmin"
+
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
+
+    - role: postgres
+      postgres_listen_addresses: "*"
+      postgres_hba_entries:
+        - "host all all 0.0.0.0/0 scram-sha-256"
+
+    - role: redis
+      redis_config_template: "templates/redis.conf.j2"
+
+    - role: rustfs
+      rustfs_version_checksum: "sha256:082834d38167f2fa581e98d14a7126e3e203153e38ae5882eca8d02a4207d12f"
+      rustfs_cli_version_checksum: "sha256:a02091205fe4d9fbf0d16a0dac3d46ad7fac7d5266024b5b17e76327a4e88aa8"
+      rustfs_env_file_template: "templates/rustfs.env.j2"
+      rustfs_buckets:
+        - "{{ rustfs_bucket }}"
+
+    - role: "geerlingguy.docker"
+      become: true
+      docker_users:
+        - "{{ ansible_user_id }}"
+
+    - role: tls
+      tls_mkcert_generate:
+        - agent-name: "{{ inventory_hostname }}"
+          ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+          dns: "{{ tfe_hostname }}"
+
+    - role: tfe
+      tfe_compose_template: "templates/compose.yaml.j2"
+      tfe_tls_ca_cert: "{{ playbook_dir }}/.tls/ca.pem"
+      tfe_tls_cert: "{{ playbook_dir }}/.tls/{{ inventory_hostname }}.pem"
+      tfe_tls_cert_key: "{{ playbook_dir }}/.tls/{{ inventory_hostname }}-key.pem"

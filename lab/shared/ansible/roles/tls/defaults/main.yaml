@@ -3,3 +3,4 @@ tls_ca_generate: true
 tls_ca_pem_filename: "ca.pem"
 tls_ca_key_filename: "ca-key.pem"
 tls_self_signed_generate: [ ]
+tls_mkcert_generate: [ ]

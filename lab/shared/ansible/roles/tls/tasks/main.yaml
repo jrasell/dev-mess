@@ -42,9 +42,15 @@
     when: not pem_exists.stat.exists
 
   delegate_to: 127.0.0.1
-  when: tls_ca_generate is true
+  when:
+    - tls_ca_generate is true
+    - tls_mkcert_generate | length == 0
   run_once: true
 
 - name: "generate_self_signed_certificate"
   include_tasks: "cert_generate.yaml"
   with_items: "{{ tls_self_signed_generate }}"
+
+- name: "generate_mkcert_certificate"
+  include_tasks: "mkcert_generate.yaml"
+  with_items: "{{ tls_mkcert_generate }}"

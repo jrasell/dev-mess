@@ -12,6 +12,13 @@
         subject_alt_name_critical: true
         use_common_name_for_san: false
         common_name: "{{ item['agent-name'] }}"
+        key_usage:
+          - digitalSignature
+          - keyEncipherment
+        key_usage_critical: true
+        extended_key_usage:
+          - serverAuth
+          - clientAuth
       register: csr
 
     - name: "check_existing_certificate"

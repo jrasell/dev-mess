@@ -1,0 +1,68 @@
+---
+name: terraform-enterprise
+services:
+  tfe:
+    image: "images.releases.hashicorp.com/hashicorp/terraform-enterprise:{{ tfe_version }}"
+    restart: unless-stopped
+    environment:
+      TFE_LICENSE: "{{ tfe_license | replace('$', '$$') }}"
+      TFE_HOSTNAME: "{{ tfe_hostname }}"
+      TFE_ENCRYPTION_PASSWORD: "{{ tfe_encryption_password | replace('$', '$$') }}"
+      TFE_OPERATIONAL_MODE: "active-active"
+      TFE_DISK_CACHE_VOLUME_NAME: "terraform-enterprise_terraform-enterprise-cache"
+      TFE_TLS_CERT_FILE: "/etc/ssl/private/terraform-enterprise/cert.pem"
+      TFE_TLS_KEY_FILE: "/etc/ssl/private/terraform-enterprise/key.pem"
+      TFE_TLS_CA_BUNDLE_FILE: "/etc/ssl/private/terraform-enterprise/bundle.pem"
+      TFE_IACT_SUBNETS: "0.0.0.0/0"
+      TFE_IACT_TIME_LIMIT: "60"
+      TFE_RUN_PIPELINE_DOCKER_EXTRA_HOSTS: "{{ tfe_hostname }}:{{ ansible_facts['default_ipv4']['address'] }}"
+      TFE_USAGE_REPORTING_OPT_OUT: "true"
+
+      # Database settings.
+      TFE_DATABASE_USER: "{{ postgres_user }}"
+      TFE_DATABASE_PASSWORD: "{{ postgres_password | replace('$', '$$') }}"
+      TFE_DATABASE_HOST: "{{ ansible_facts['default_ipv4']['address'] }}:5432"
+      TFE_DATABASE_NAME: "{{ postgres_db }}"
+      TFE_DATABASE_PARAMETERS: "sslmode=disable"
+
+      # RustFS Object storage settings which provides S3-compatible object
+      # storage for TFE.
+      TFE_OBJECT_STORAGE_TYPE: "s3"
+      TFE_OBJECT_STORAGE_S3_ENDPOINT: "http://{{ ansible_facts['default_ipv4']['address'] }}:9000"
+      TFE_OBJECT_STORAGE_S3_USE_INSTANCE_PROFILE: "false"
+      TFE_OBJECT_STORAGE_S3_ACCESS_KEY_ID: "{{ rustfs_access_key }}"
+      TFE_OBJECT_STORAGE_S3_SECRET_ACCESS_KEY: "{{ rustfs_secret_key | replace('$', '$$') }}"
+      TFE_OBJECT_STORAGE_S3_REGION: "{{ rustfs_region }}"
+      TFE_OBJECT_STORAGE_S3_BUCKET: "{{ rustfs_bucket }}"
+
+      # Redis settings.
+      TFE_REDIS_HOST: "{{ ansible_facts['default_ipv4']['address'] }}:6379"
+      TFE_REDIS_USE_TLS: "false"
+      TFE_REDIS_USE_AUTH: "false"
+
+      # Vault cluster settings.
+      TFE_VAULT_CLUSTER_ADDRESS: "https://{{ ansible_facts['default_ipv4']['address'] }}:8201"
+    cap_add:
+      - IPC_LOCK
+    read_only: true
+    tmpfs:
+      - /tmp:mode=01777
+      - /run
+      - /var/log/terraform-enterprise
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8201:8201"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /run/docker.sock
+      - type: bind
+        source: ./certs
+        target: /etc/ssl/private/terraform-enterprise
+      - type: volume
+        source: terraform-enterprise-cache
+        target: /var/cache/tfe-task-worker/terraform
+
+volumes:
+  terraform-enterprise-cache:
