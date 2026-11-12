@@ -1,0 +1,26 @@
+- name: "install_redis"
+  become: true
+  ansible.builtin.apt:
+    name:
+      - "redis-server"
+      - "redis-tools"
+    state: present
+    update_cache: true
+
+- name: "write_redis_config"
+  become: true
+  when: redis_config_template != ""
+  ansible.builtin.template:
+    src: "{{ redis_config_template }}"
+    dest: "{{ redis_config_file }}"
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: "0640"
+  notify: "restart_redis"
+
+- name: "enable_and_start_redis"
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ redis_service_name }}"
+    state: started
+    enabled: true
