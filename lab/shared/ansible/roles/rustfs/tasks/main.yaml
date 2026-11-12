@@ -1,0 +1,161 @@
+- name: "create_rustfs_group"
+  become: true
+  ansible.builtin.group:
+    name: "{{ rustfs_group }}"
+    system: true
+    state: present
+
+- name: "create_rustfs_user"
+  become: true
+  ansible.builtin.user:
+    name: "{{ rustfs_user }}"
+    group: "{{ rustfs_group }}"
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: "check_rustfs_installed_version"
+  ansible.builtin.stat:
+    path: "{{ rustfs_install_dir }}/rustfs"
+  register: rustfs_binary_stat
+
+- name: "get_installed_rustfs_version"
+  ansible.builtin.command: "{{ rustfs_install_dir }}/rustfs --version"
+  register: rustfs_installed_version
+  when: rustfs_binary_stat.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: "set_rustfs_architecture"
+  ansible.builtin.set_fact:
+    rustfs_arch: "{{ rustfs_arch_map[ansible_architecture] }}"
+    rustfs_cli_arch: "{{ rustfs_cli_arch_map[ansible_architecture] }}"
+
+- name: "download_rustfs_archive"
+  become: false
+  ansible.builtin.get_url:
+    url: "https://github.com/rustfs/rustfs/releases/download/{{ rustfs_version }}/rustfs-linux-{{ rustfs_arch }}-musl-v{{ rustfs_version }}.zip"
+    checksum: "{{ rustfs_version_checksum | default(omit) }}"
+    dest: "/tmp/rustfs-v{{ rustfs_version }}.zip"
+    timeout: 120
+    mode: "0600"
+  when: >
+    not rustfs_binary_stat.stat.exists or
+    (rustfs_installed_version.stdout is defined and rustfs_version not in rustfs_installed_version.stdout)
+
+- name: "extract_rustfs_binary"
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "/tmp/rustfs-v{{ rustfs_version }}.zip"
+    dest: "{{ rustfs_install_dir }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: >
+    not rustfs_binary_stat.stat.exists or
+    (rustfs_installed_version.stdout is defined and rustfs_version not in rustfs_installed_version.stdout)
+  notify: "restart_rustfs"
+
+- name: "remove_rustfs_archive"
+  ansible.builtin.file:
+    path: "/tmp/rustfs-v{{ rustfs_version }}.zip"
+    state: absent
+
+- name: "check_rustfs_cli_installed"
+  ansible.builtin.stat:
+    path: "{{ rustfs_install_dir }}/rc"
+  register: rustfs_cli_stat
+
+- name: "download_rustfs_cli_archive"
+  become: false
+  ansible.builtin.get_url:
+    url: "https://github.com/rustfs/cli/releases/download/v{{ rustfs_cli_version }}/rustfs-cli-linux-{{ rustfs_cli_arch }}-v{{ rustfs_cli_version }}.tar.gz"
+    checksum: "{{ rustfs_cli_version_checksum | default(omit) }}"
+    dest: "/tmp/rustfs-cli-v{{ rustfs_cli_version }}.tar.gz"
+    timeout: 120
+    mode: "0600"
+  when: not rustfs_cli_stat.stat.exists
+
+- name: "extract_rustfs_cli_binary"
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "/tmp/rustfs-cli-v{{ rustfs_cli_version }}.tar.gz"
+    dest: "{{ rustfs_install_dir }}"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  when: not rustfs_cli_stat.stat.exists
+
+- name: "remove_rustfs_cli_archive"
+  ansible.builtin.file:
+    path: "/tmp/rustfs-cli-v{{ rustfs_cli_version }}.tar.gz"
+    state: absent
+
+- name: "create_rustfs_directories"
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ rustfs_user }}"
+    group: "{{ rustfs_group }}"
+    mode: "0750"
+  loop:
+    - "{{ rustfs_data_dir }}"
+    - "{{ rustfs_log_dir }}"
+
+- name: "write_rustfs_env_file"
+  become: true
+  ansible.builtin.template:
+    src: "{{ rustfs_env_file_template }}"
+    dest: "{{ rustfs_env_file }}"
+    owner: "root"
+    group: "{{ rustfs_group }}"
+    mode: "0640"
+  notify: "restart_rustfs"
+
+- name: "write_rustfs_service"
+  become: true
+  ansible.builtin.template:
+    src: "rustfs.service.j2"
+    dest: "/etc/systemd/system/rustfs.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+    - "reload_systemd"
+    - "restart_rustfs"
+
+- name: "enable_and_start_rustfs"
+  become: true
+  ansible.builtin.systemd:
+    name: "rustfs"
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: "flush_rustfs_handlers"
+  ansible.builtin.meta: flush_handlers
+
+- name: "wait_for_rustfs_ready"
+  when: rustfs_buckets | length > 0
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:9000/health/ready"
+    status_code: 200
+  register: rustfs_health
+  until: rustfs_health.status == 200
+  retries: 30
+  delay: 2
+
+- name: "create_rustfs_buckets"
+  become: true
+  when: rustfs_buckets | length > 0
+  ansible.builtin.command:
+    cmd: "{{ rustfs_install_dir }}/rc bucket create local/{{ item }} --ignore-existing"
+  environment:
+    RC_HOST_local: "http://{{ rustfs_access_key }}:{{ rustfs_secret_key }}@127.0.0.1:9000"
+  loop: "{{ rustfs_buckets }}"
+  changed_when: false
+  no_log: true

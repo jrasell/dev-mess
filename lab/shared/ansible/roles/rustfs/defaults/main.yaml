@@ -1,0 +1,35 @@
+rustfs_version: "1.0.5"
+rustfs_version_checksum: ""
+rustfs_install_dir: "/usr/local/bin"
+
+rustfs_user: "rustfs"
+rustfs_group: "rustfs"
+
+rustfs_data_dir: "/var/lib/rustfs"
+rustfs_log_dir: "/var/log/rustfs"
+
+rustfs_env_file: "/etc/default/rustfs"
+rustfs_env_file_template: ""
+
+rustfs_buckets: []
+
+rustfs_cli_version: "0.1.37"
+rustfs_cli_version_checksum: ""
+
+# Used internally to the role to map the architecture of the host to the
+# architecture used by RustFS binaries.
+rustfs_arch_map:
+  x86_64: "x86_64"
+  amd64: "x86_64"
+  aarch64: "aarch64"
+  arm64: "aarch64"
+
+# Used internally to the role to map the architecture of the host to the
+# architecture used by RustFS CLI binaries. Annoyingly, the RustFS CLI and
+# RustFS server binaries use different architecture names for the same
+# architecture.
+rustfs_cli_arch_map:
+  x86_64: "x86_64"
+  amd64: "x86_64"
+  aarch64: "arm64"
+  arm64: "arm64"
