@@ -3,18 +3,18 @@
 # version is updated. When a playbook needs to override a version, it can do so by defining the
 # variable in the playbook itself.
 
-default_golang_version: "1.27.2"
-default_golang_linux_arm64_sha256sum: "94f3e30b8e374bc285e7dadc11e0865726b9bc6e85b841ccceaabc0214c6b7c8"
-default_golang_linux_amd64_sha256sum: "ecbadb99091a3f46e31f5f934b068b1864eafa7995211b39eaddf76996045fe5"
+default_golang_version: "1.27.4"
+default_golang_linux_arm64_sha256sum: "3392582988a273a87ab5043ee1b2c9c17a2c3c00580bf9326c47a2e0aaaeac92"
+default_golang_linux_amd64_sha256sum: "7226736c2339719cda28fbf3a54d71aa63bcefe376e98cef00034268dab24840"
 
-default_nomad_version: "2.0.6"
-default_nomad_linux_arm64_checksum: "sha256:6ccc4c25ec0b6b71c30af4df7ae3dfb3f7a0a05173555f94be452d072100cc52"
-default_nomad_linux_amd64_checksum: "sha256:c6da734081a41d51cadf15ec880d5eab0313093a29d2ee0984ca5ae1cdf867ec"
+default_nomad_version: "2.1.1"
+default_nomad_linux_arm64_checksum: "sha256:ed7222af2f9b924262a8c4e053688ad9e7a7c82fa9485d6d147261072b3b8d50"
+default_nomad_linux_amd64_checksum: "sha256:073084f7690fdaea756ff1eff8b669b25c3a6c17778f19ae0c47606973ed3f39"
 
-default_vault_version: "2.1.0"
-default_vault_linux_arm64_checksum: "sha256:319b3eb7b0c2ad218453f5d1af5c23cac81a024db3a07ccd2494ecd31f2090c3"
-default_vault_linux_amd64_checksum: "sha256:08e8a13d29d20c5e28ef5e2c187bf3a2e84712a43615de1b3d24701ad9aab972"
+default_vault_version: "2.2.2"
+default_vault_linux_arm64_checksum: "sha256:78634c8672601ad1ca9b27f24e76c54224d12521c59ece957ab8d23976ddca12"
+default_vault_linux_amd64_checksum: "sha256:5700edf139113609962fe371af7d2a53de8ecb720d545dc39b43de204515d3c4"
 
-default_consul_version: "2.0.3"
-default_consul_linux_arm64_checksum: "sha256:7551d8f07cbfb633d260fe27a9f7144ce08f1cb964e31e15788309dfb6c2fda5"
-default_consul_linux_amd64_checksum: "sha256:08e8a13d29d20c5e28ef5e2c187bf3a2e84712a43615de1b3d24701ad9aab972"
+default_consul_version: "2.1.0"
+default_consul_linux_arm64_checksum: "sha256:eb34b81592e25eadb3fbc553afb2036004dcd316d99a1a8e40a177fde4e0e537"
+default_consul_linux_amd64_checksum: "sha256:a9c9cdf1ed93bd29a9671b02e5433131f3f777bab16c076fcef712a2820bfe33"
