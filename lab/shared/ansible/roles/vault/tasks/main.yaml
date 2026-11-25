@@ -71,6 +71,18 @@
     modification_time: preserve
     access_time: preserve
 
+- name: "create_audit_log_file"
+  become: true
+  ansible.builtin.file:
+    path: "{{ vault_audit_log_file }}"
+    state: touch
+    mode: "0640"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    modification_time: preserve
+    access_time: preserve
+  when: vault_audit_log_file is defined and vault_audit_log_file | length > 0
+
 - name: "write_config_template"
   become: true
   ansible.builtin.template:
