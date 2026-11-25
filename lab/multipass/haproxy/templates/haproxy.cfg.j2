@@ -1,0 +1,51 @@
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log     global
+    mode    tcp
+    option  dontlognull
+    timeout connect 5s
+    timeout client  120s
+    timeout server  120s
+
+listen stats
+    mode http
+    bind *:{{ haproxy_stats_port }}
+    stats enable
+    stats uri /stats
+    stats refresh 5s
+{% for listener in haproxy_listeners %}
+{% if listener.backends | length > 0 %}
+
+frontend {{ listener.name }}_frontend
+    bind *:{{ listener.bind_port }}
+    mode {{ listener.mode | default('tcp') }}
+{% if (listener.mode | default('tcp')) == 'tcp' %}
+    option tcplog
+{% else %}
+    option httplog
+{% endif %}
+    default_backend {{ listener.name }}_backend
+
+backend {{ listener.name }}_backend
+    mode {{ listener.mode | default('tcp') }}
+    balance {{ listener.balance | default('roundrobin') }}
+{% if listener.health_check_uri | default('') | length > 0 %}
+    option httpchk
+    http-check send meth GET uri {{ listener.health_check_uri }}{% if listener.health_check_host | default('') | length > 0 %} hdr Host {{ listener.health_check_host }}{% endif %}
+
+    http-check expect status {{ listener.health_check_expect_status | default(200) }}
+{% endif %}
+{% for ip in listener.backends %}
+    server {{ listener.name }}-{{ loop.index }} {{ ip }}:{{ listener.backend_port | default(listener.bind_port) }} check{% if listener.health_check_ssl | default(false) %} check-ssl verify none{% endif %} inter {{ listener.check_interval | default('3s') }} fall {{ listener.check_fall | default(2) }} rise {{ listener.check_rise | default(2) }}
+{% endfor %}
+{% endif %}
+{% endfor %}

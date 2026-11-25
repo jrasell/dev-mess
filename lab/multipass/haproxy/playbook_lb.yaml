@@ -1,0 +1,40 @@
+---
+- hosts: lb
+  vars:
+    haproxy_stats_port: 8404
+    haproxy_listeners: []
+
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "curl"
+        - "haproxy"
+        - "jq"
+        - "net-tools"
+
+  tasks:
+    - name: "render_haproxy_config"
+      become: true
+      ansible.builtin.template:
+        src: "templates/haproxy.cfg.j2"
+        dest: "/etc/haproxy/haproxy.cfg"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        validate: "haproxy -c -f %s"
+      notify: "reload_haproxy"
+
+    - name: "enable_and_start_haproxy"
+      become: true
+      ansible.builtin.systemd:
+        name: "haproxy"
+        state: started
+        enabled: true
+
+  handlers:
+    - name: "reload_haproxy"
+      become: true
+      ansible.builtin.systemd:
+        name: "haproxy"
+        state: reloaded
