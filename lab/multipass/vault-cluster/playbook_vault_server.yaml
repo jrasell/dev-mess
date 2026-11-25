@@ -1,0 +1,36 @@
+---
+- hosts: vault_server
+  vars_files:
+    - "../../shared/ansible/versions.yaml"
+
+  vars:
+    artifact_dir: "{{ playbook_dir }}"
+
+  roles:
+    - role: common
+      common_hostname: "{{ inventory_hostname }}"
+      common_apt_packages:
+        - "build-essential"
+        - "git"
+        - "jq"
+        - "make"
+        - "net-tools"
+        - "unzip"
+
+    - role: tls
+      tls_path: "{{ artifact_dir }}/.tls"
+      tls_mkcert_generate:
+        - agent-name: "vault-{{ inventory_hostname }}"
+          ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+          dns: "{{ vault_tls_extra_sans | default('') }}"
+
+    - role: vault
+      vault_binary_version: "{{ default_vault_version }}"
+      vault_binary_checksum: "{{ default_vault_linux_arm64_checksum }}"
+      vault_config_dir: "/etc/vault.d"
+      vault_data_dir: "/opt/vault/data"
+      vault_config_template: "./templates/vault_server.hcl.j2"
+      vault_tls_enabled: true
+      vault_tls_ca_cert: "{{ artifact_dir }}/.tls/ca.pem"
+      vault_tls_cert: "{{ artifact_dir }}/.tls/vault-{{ inventory_hostname }}.pem"
+      vault_tls_cert_key: "{{ artifact_dir }}/.tls/vault-{{ inventory_hostname }}-key.pem"
