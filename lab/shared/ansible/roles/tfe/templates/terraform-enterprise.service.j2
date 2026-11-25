@@ -1,7 +1,7 @@
 [Unit]
 Description=Terraform Enterprise Service
-Requires=docker.service postgresql.service redis-server.service rustfs.service
-After=docker.service network.target postgresql.service redis-server.service rustfs.service
+Requires={{ tfe_systemd_requires | join(' ') }}
+After={{ tfe_systemd_after | join(' ') }}
 
 [Service]
 Type=oneshot

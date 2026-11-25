@@ -20,3 +20,9 @@ tfe_license: >-
 tfe_tls_ca_cert: ""
 tfe_tls_cert: ""
 tfe_tls_cert_key: ""
+
+tfe_systemd_requires:
+  - "docker.service"
+tfe_systemd_after:
+  - "docker.service"
+  - "network.target"
