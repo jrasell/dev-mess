@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rustfs-config
+data:
+  RUSTFS_VOLUMES: "http://rustfs-{0...3}.rustfs-headless.storage.svc.cluster.local:9000/data/rustfs{0...1}"
+  RUSTFS_UNSAFE_BYPASS_DISK_CHECK: "true"
+  RUSTFS_ADDRESS: ":9000"
+  RUSTFS_CONSOLE_ENABLE: "true"
+  RUSTFS_CONSOLE_ADDRESS: ":9001"
+  RUSTFS_REGION: "mse1"
+  RUSTFS_OBS_ENVIRONMENT: "production"
+  RUSTFS_OBS_LOGGER_LEVEL: "info"
+  RUSTFS_OBS_LOG_DIRECTORY: ""
+  RUSTFS_OBS_LOG_STDOUT_ENABLED: "true"

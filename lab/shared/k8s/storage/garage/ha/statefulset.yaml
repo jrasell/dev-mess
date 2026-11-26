@@ -1,0 +1,102 @@
+---
+# Deploys a 3-node HA Garage S3 object storage cluster.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: garage
+  labels:
+    app: garage
+    app.kubernetes.io/name: garage
+spec:
+  serviceName: garage-headless
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: garage
+  template:
+    metadata:
+      labels:
+        app: garage
+        app.kubernetes.io/name: garage
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3903"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: garage
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: garage
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: garage
+          image: dxflrs/garage:v2.5.0
+          args:
+            - "/garage"
+            - "-c"
+            - "/etc/garage.toml"
+            - "server"
+          env:
+            - name: RUST_LOG
+              value: "garage=info"
+            - name: GARAGE_LOG_FORMAT
+              value: "json"
+          envFrom:
+            - secretRef:
+                name: garage-credentials
+          ports:
+            - name: s3-api
+              containerPort: 3900
+              protocol: TCP
+            - name: rpc
+              containerPort: 3901
+              protocol: TCP
+            - name: s3-web
+              containerPort: 3902
+              protocol: TCP
+            - name: admin
+              containerPort: 3903
+              protocol: TCP
+            - name: k2v-api
+              containerPort: 3904
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3900
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 3900
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/garage.toml
+              subPath: garage.toml
+              readOnly: true
+            - name: meta
+              mountPath: /var/lib/garage/meta
+            - name: data
+              mountPath: /var/lib/garage/data
+      volumes:
+        - name: config
+          configMap:
+            name: garage-config
+        - name: meta
+          emptyDir: {}
+        - name: data
+          emptyDir: {}

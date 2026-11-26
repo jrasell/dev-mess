@@ -1,0 +1,64 @@
+---
+# Deploys the Garage Web UI for managing cluster layout, buckets, keys, and
+# browsing objects via a browser.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: garage-webui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: garage-webui
+  template:
+    metadata:
+      labels:
+        app: garage-webui
+    spec:
+      containers:
+        - name: garage-webui
+          image: khairul169/garage-webui:1.1.0
+          env:
+            - name: CONFIG_PATH
+              value: "/etc/garage.toml"
+            - name: API_BASE_URL
+              value: "http://garage.storage.svc.cluster.local:3903"
+            - name: S3_ENDPOINT_URL
+              value: "http://garage.storage.svc.cluster.local:3900"
+            - name: S3_REGION
+              value: "garage"
+            - name: API_ADMIN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: garage-credentials
+                  key: GARAGE_ADMIN_TOKEN
+          ports:
+            - name: http
+              containerPort: 3909
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 3909
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 3909
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/garage.toml
+              subPath: garage.toml
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: garage-config

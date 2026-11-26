@@ -1,0 +1,84 @@
+---
+# Headless service providing stable DNS records (garage-0.garage-headless, etc.)
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage-headless
+  labels:
+    app: garage
+    app.kubernetes.io/name: garage
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: garage
+  ports:
+    - name: s3-api
+      port: 3900
+      targetPort: s3-api
+      protocol: TCP
+    - name: rpc
+      port: 3901
+      targetPort: rpc
+      protocol: TCP
+    - name: s3-web
+      port: 3902
+      targetPort: s3-web
+      protocol: TCP
+    - name: admin
+      port: 3903
+      targetPort: admin
+      protocol: TCP
+    - name: k2v-api
+      port: 3904
+      targetPort: k2v-api
+      protocol: TCP
+
+---
+# Client entrypoint service for Garage S3, Web, K2V, and Admin APIs
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage
+  labels:
+    app: garage
+    app.kubernetes.io/name: garage
+spec:
+  selector:
+    app: garage
+  ports:
+    - name: s3-api
+      port: 3900
+      targetPort: s3-api
+      protocol: TCP
+    - name: rpc
+      port: 3901
+      targetPort: rpc
+      protocol: TCP
+    - name: s3-web
+      port: 3902
+      targetPort: s3-web
+      protocol: TCP
+    - name: admin
+      port: 3903
+      targetPort: admin
+      protocol: TCP
+    - name: k2v-api
+      port: 3904
+      targetPort: k2v-api
+      protocol: TCP
+
+---
+# Exposes the Garage Web UI internally within the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage-webui
+spec:
+  selector:
+    app: garage-webui
+  ports:
+    - name: http
+      port: 3909
+      targetPort: http
+      protocol: TCP

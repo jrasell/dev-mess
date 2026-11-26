@@ -1,0 +1,59 @@
+---
+# One-shot Job that initializes the single-node Garage cluster layout.
+# Idempotent: skips initialization if the cluster layout is already applied.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: garage-layout-init
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app: garage-layout-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: layout-init
+          image: curlimages/curl:8.12.1
+          envFrom:
+            - secretRef:
+                name: garage-credentials
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              set -eu
+
+              ADMIN_URL="http://garage:3903"
+              AUTH_HEADER="Authorization: Bearer ${GARAGE_ADMIN_TOKEN}"
+
+              echo "Waiting for Garage Admin API to respond..."
+              until curl -sf -H "${AUTH_HEADER}" "${ADMIN_URL}/v2/GetClusterStatus" >/dev/null 2>&1; do
+                echo "  waiting for ${ADMIN_URL}..."
+                sleep 2
+              done
+
+              if curl -sf "${ADMIN_URL}/health" >/dev/null 2>&1; then
+                echo "Garage cluster layout is already initialized and healthy."
+                exit 0
+              fi
+
+              STATUS=$(curl -sf -H "${AUTH_HEADER}" "${ADMIN_URL}/v2/GetClusterStatus")
+              NODE_ID=$(echo "${STATUS}" | grep -oE '"id"[[:space:]]*:[[:space:]]*"[0-9a-f]{64}"' | grep -oE '[0-9a-f]{64}' | head -n 1)
+
+              echo "Assigning layout role to node ${NODE_ID}..."
+              curl -sf -X POST \
+                -H "${AUTH_HEADER}" \
+                -H "Content-Type: application/json" \
+                -d "{\"roles\":[{\"id\":\"${NODE_ID}\",\"zone\":\"dc1\",\"capacity\":1073741824,\"tags\":[\"garage-0\"]}]}" \
+                "${ADMIN_URL}/v2/UpdateClusterLayout" >/dev/null
+
+              echo "Applying cluster layout version 1..."
+              curl -sf -X POST \
+                -H "${AUTH_HEADER}" \
+                -H "Content-Type: application/json" \
+                -d '{"version":1}' \
+                "${ADMIN_URL}/v2/ApplyClusterLayout" >/dev/null
+
+              echo "Garage standalone layout initialized successfully."

@@ -1,0 +1,38 @@
+---
+# HA Garage configuration (3-node cluster, replication_factor = 3).
+# Nodes automatically discover peers via Kubernetes CRD discovery.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: garage-config
+data:
+  garage.toml: |
+    metadata_dir = "/var/lib/garage/meta"
+    data_dir = "/var/lib/garage/data"
+    db_engine = "sqlite"
+
+    replication_factor = 3
+
+    rpc_bind_addr = "[::]:3901"
+    rpc_bind_outgoing = false
+
+    kubernetes_namespace = "storage"
+    kubernetes_service_name = "garage"
+    kubernetes_skip_crd = false
+
+    [s3_api]
+    s3_region = "garage"
+    api_bind_addr = "[::]:3900"
+    root_domain = ".s3.garage.jrasell.test"
+
+    [s3_web]
+    bind_addr = "[::]:3902"
+    root_domain = ".web.garage.jrasell.test"
+    index = "index.html"
+
+    [k2v_api]
+    api_bind_addr = "[::]:3904"
+
+    [admin]
+    api_bind_addr = "[::]:3903"
+    admin_token = "garage-admin-token"
