@@ -1,0 +1,129 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: terraform-enterprise
+  labels:
+    app: terraform-enterprise
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: terraform-enterprise
+  template:
+    metadata:
+      labels:
+        app: terraform-enterprise
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: terraform-enterprise
+      imagePullSecrets:
+        - name: terraform-enterprise-registry
+      initContainers:
+        - name: s3-bucket-init
+          image: amazon/aws-cli:2.27.49
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: "rustfsadmin"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "rustfsadmin"
+            - name: AWS_REGION
+              value: "mse1"
+            - name: AWS_EC2_METADATA_DISABLED
+              value: "true"
+          command:
+            - "/bin/sh"
+            - "-ec"
+          args:
+            - |
+              until aws --endpoint-url http://rustfs:9000 s3api list-buckets >/dev/null 2>&1; do
+                echo "Waiting for RustFS S3 API at http://rustfs:9000..."
+                sleep 2
+              done
+              aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket tfe 2>/dev/null || \
+                aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket tfe
+      containers:
+        - name: terraform-enterprise
+          image: images.releases.hashicorp.com/hashicorp/terraform-enterprise:2.1.1
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: terraform-enterprise-config
+            - secretRef:
+                name: terraform-enterprise-secrets
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+            - name: admin-https
+              containerPort: 9443
+              protocol: TCP
+            - name: metrics-http
+              containerPort: 9090
+              protocol: TCP
+            - name: metrics-https
+              containerPort: 9091
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 18
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 3500Mi
+          volumeMounts:
+            - name: cache
+              mountPath: /var/cache/tfe-task-worker
+            - name: certs
+              mountPath: /etc/ssl/private/terraform-enterprise
+              readOnly: true
+            - name: log
+              mountPath: /var/log/terraform-enterprise
+            - name: run
+              mountPath: /run
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: cache
+          emptyDir: {}
+        - name: certs
+          secret:
+            secretName: terraform-enterprise-certs
+        - name: log
+          emptyDir: {}
+        - name: run
+          emptyDir:
+            medium: Memory
+        - name: tmp
+          emptyDir:
+            medium: Memory
