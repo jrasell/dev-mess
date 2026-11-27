@@ -20,6 +20,9 @@ spec:
           ports:
             - name: postgres
               containerPort: 5432
+          env:
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
           envFrom:
             - secretRef:
                 name: postgres-credentials
@@ -43,11 +46,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
+      volumes:
+        - name: data
+          emptyDir: {}
