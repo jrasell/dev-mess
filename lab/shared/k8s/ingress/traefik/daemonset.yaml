@@ -25,6 +25,9 @@ spec:
             - "--ping=true"
             - "--providers.kubernetesingress"
             - "--entrypoints.web.address=:8000"
+            - "--entrypoints.websecure.address=:8443"
+            - "--entrypoints.websecure.http.tls=true"
+            - "--serversTransport.insecureSkipVerify=true"
             - "--entrypoints.metrics.address=:8082"
             - "--metrics.prometheus=true"
             - "--metrics.prometheus.entrypoint=metrics"
@@ -35,6 +38,9 @@ spec:
             - name: web
               containerPort: 8000
               hostPort: 80
+            - name: websecure
+              containerPort: 8443
+              hostPort: 443
             - name: dashboard
               containerPort: 8080
               hostPort: 8080
